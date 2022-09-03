@@ -2,19 +2,19 @@ namespace problem_1;
 
 public abstract class Solver
 {
-    protected Vector<double>? solution;
-    protected Vector<double> vector = default!;
-    protected Matrix<double> matrix = default!;
-    public ImmutableArray<double>? Solution => solution?.ToImmutableArray();
+    protected Vector<double>? MutableSolution;
+    protected Vector<double> Vector = default!;
+    protected Matrix<double> Matrix = default!;
+    public ImmutableArray<double>? Solution => MutableSolution?.ToImmutableArray();
 
     public void SetVector(Vector<double> vector)
-        => this.vector = vector;
+        => this.Vector = vector;
 
     public void SetMatrix(Matrix<double> matrix)
-        => this.matrix = matrix;
+        => this.Matrix = matrix;
 
     protected Solver(Matrix<double> matrix, Vector<double> vector)
-        => (this.matrix, this.vector) = (matrix, vector);
+        => (this.Matrix, this.Vector) = (matrix, vector);
 
     protected Solver() { }
 
@@ -31,76 +31,76 @@ public class Gauss : Solver
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(matrix, $"{nameof(matrix)} cannot be null, set the matrix");
-            ArgumentNullException.ThrowIfNull(vector, $"{nameof(vector)} cannot be null, set the vector");
+            ArgumentNullException.ThrowIfNull(Matrix, $"{nameof(Matrix)} cannot be null, set the Matrix");
+            ArgumentNullException.ThrowIfNull(Vector, $"{nameof(Vector)} cannot be null, set the Vector");
 
-            if (matrix.Rows != matrix.Columns)
+            if (Matrix.Rows != Matrix.Columns)
             {
                 throw new NotSupportedException("The Gaussian method will not be able to solve this system");
             }
 
-            solution = new(vector.Size);
+            MutableSolution = new(Vector.Size);
 
             double max;
             double eps = 1E-14;
 
-            for (int k = 0; k < matrix.Rows; k++)
+            for (int k = 0; k < Matrix.Rows; k++)
             {
-                max = Math.Abs(matrix[k, k]);
+                max = Math.Abs(Matrix[k, k]);
                 int index = k;
 
-                for (int i = k + 1; i < matrix.Rows; i++)
+                for (int i = k + 1; i < Matrix.Rows; i++)
                 {
-                    if (Math.Abs(matrix[i, k]) > max)
+                    if (Math.Abs(Matrix[i, k]) > max)
                     {
-                        max = Math.Abs(matrix[i, k]);
+                        max = Math.Abs(Matrix[i, k]);
                         index = i;
                     }
                 }
 
-                for (int j = 0; j < matrix.Rows; j++)
+                for (int j = 0; j < Matrix.Rows; j++)
                 {
-                    (matrix[k, j], matrix[index, j]) =
-                        (matrix[index, j], matrix[k, j]);
+                    (Matrix[k, j], Matrix[index, j]) =
+                        (Matrix[index, j], Matrix[k, j]);
                 }
 
-                (vector[k], vector[index]) = (vector[index], vector[k]);
+                (Vector[k], Vector[index]) = (Vector[index], Vector[k]);
 
-                for (int i = k; i < matrix.Rows; i++)
+                for (int i = k; i < Matrix.Rows; i++)
                 {
-                    double temp = matrix[i, k];
+                    double temp = Matrix[i, k];
 
                     if (Math.Abs(temp) < eps)
                     {
                         throw new Exception("Zero element of the column");
                     }
 
-                    for (int j = 0; j < matrix.Rows; j++)
+                    for (int j = 0; j < Matrix.Rows; j++)
                     {
-                        matrix[i, j] /= temp;
+                        Matrix[i, j] /= temp;
                     }
 
-                    vector[i] /= temp;
+                    Vector[i] /= temp;
 
                     if (i != k)
                     {
-                        for (int j = 0; j < matrix.Rows; j++)
+                        for (int j = 0; j < Matrix.Rows; j++)
                         {
-                            matrix[i, j] -= matrix[k, j];
+                            Matrix[i, j] -= Matrix[k, j];
                         }
 
-                        vector[i] -= vector[k];
+                        Vector[i] -= Vector[k];
                     }
                 }
             }
 
-            for (int k = matrix.Rows - 1; k >= 0; k--)
+            for (int k = Matrix.Rows - 1; k >= 0; k--)
             {
-                solution![k] = vector[k];
+                MutableSolution![k] = Vector[k];
 
                 for (int i = 0; i < k; i++)
                 {
-                    vector[i] = vector[i] - matrix[i, k] * solution[k];
+                    Vector[i] = Vector[i] - Matrix[i, k] * MutableSolution[k];
                 }
             }
         }
