@@ -2,7 +2,8 @@
 
 public class ElectroExploration
 {
-    public class ElectroExplorationBuilder {
+    public class ElectroExplorationBuilder
+    {
         private readonly ElectroExploration _electroExploration = new();
 
         public ElectroExplorationBuilder SetParameters(Parameters parameters)
@@ -49,10 +50,11 @@ public class ElectroExploration
 
         for (int i = 0; i < _matrix.Rows; i++)
         {
-            for (int j  = 0; j < _matrix.Columns; j++)
+            for (int j = 0; j < _matrix.Columns; j++)
             {
                 Console.Write($"{_matrix[i, j]}   ");
             }
+
             Console.WriteLine();
         }
 
@@ -74,11 +76,11 @@ public class ElectroExploration
             for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
             {
                 _potentialsDiffs[i, j] =
-                1.0 / (2.0 * Math.PI * _parameters.Sigma) * (
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
+                    1.0 / (2.0 * Math.PI * _parameters.Sigma) *
+                    (1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
+                     1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
+                     1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
+                     1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
 
                 _realPotentials[i, j] = _potentialsDiffs[i, j] * _parameters.PowerSources[i].RealCurrent;
 
@@ -89,7 +91,7 @@ public class ElectroExploration
 
     private void AssemblySystem()
     {
-        for (int g = 0; g < _parameters.PowerSources.Length; g++)
+        for (int q = 0; q < _parameters.PowerSources.Length; q++)
         {
             for (int s = 0; s < _parameters.PowerSources.Length; s++)
             {
@@ -99,9 +101,10 @@ public class ElectroExploration
                     {
                         double w = 1.0 / _realPotentials[i, j];
 
-                        _matrix[g, s] += w * w * _potentialsDiffs[i, j] * _potentialsDiffs[i, j];
+                        _matrix[q, s] += w * w * _potentialsDiffs[i, j] * _potentialsDiffs[i, j];
 
-                        _vector[g] -= w * w * _potentialsDiffs[i, j] * (_primaryPotentials[i, j] - _realPotentials[i, j]);
+                        _vector[q] -= w * w * _potentialsDiffs[i, j] *
+                                      (_primaryPotentials[i, j] - _realPotentials[i, j]);
                     }
                 }
             }

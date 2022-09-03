@@ -11,10 +11,10 @@ public abstract class Solver
         => this.Vector = vector;
 
     public void SetMatrix(Matrix<double> matrix)
-        => this.Matrix = matrix;
+        => Matrix = matrix;
 
     protected Solver(Matrix<double> matrix, Vector<double> vector)
-        => (this.Matrix, this.Vector) = (matrix, vector);
+        => (Matrix, Vector) = (matrix, vector);
 
     protected Solver() { }
 
