@@ -18,15 +18,15 @@ public class Solver
 
     private Parameters _parameters = default!;
     private Matrix<double> _matrix = default!;
+    private Matrix<double> _weights = default!;
     private Vector<double> _vector = default!;
-    private double[] _weights = default!;
     private double[] _primaryPotentials = default!;
     private double[] _realPotentials = default!;
 
     private void Init()
     {
-        _matrix = new(_parameters.PowerReceivers.Length);
-        _weights = new double[_parameters.PowerReceivers.Length];
+        _matrix = new(_parameters.PowerSources.Length);
+        _weights = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new double[_parameters.PowerReceivers.Length];
         _realPotentials = new double[_parameters.PowerReceivers.Length];
         _vector = new(_matrix.Size);
