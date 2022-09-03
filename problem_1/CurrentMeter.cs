@@ -1,18 +1,18 @@
 ﻿namespace problem_1;
 
-public class Solver
+public class CurrentMeter
 {
-    public class SolverBuilder
+    public class CurrentMeterBuilder
     {
-        private readonly Solver _solver = new();
+        private readonly CurrentMeter _solver = new();
 
-        public SolverBuilder SetParameters(Parameters parameters)
+        public CurrentMeterBuilder SetParameters(Parameters parameters)
         {
             _solver._parameters = parameters;
             return this;
         }
 
-        public static implicit operator Solver(SolverBuilder builder)
+        public static implicit operator CurrentMeter(CurrentMeterBuilder builder)
             => builder._solver;
     }
 
@@ -37,7 +37,6 @@ public class Solver
         Init();
         DataGeneration();
         AssemblySystem();
-        Console.Read();
     }
 
     private void DataGeneration()
@@ -91,5 +90,5 @@ public class Solver
         }
     }
 
-    public static SolverBuilder CreateBuilder() => new();
+    public static CurrentMeterBuilder CreateBuilder() => new();
 }

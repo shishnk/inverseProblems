@@ -21,5 +21,5 @@ var parameters = new Parameters()
     RealCurrent = 1
 };
 
-Solver solver = Solver.CreateBuilder().SetParameters(parameters);
-solver.Compute();
+CurrentMeter currentMeter = CurrentMeter.CreateBuilder().SetParameters(parameters);
+currentMeter.Compute();
