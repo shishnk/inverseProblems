@@ -1,19 +1,19 @@
 namespace problem_1;
 
-public abstract class Solver<T> where T : INumber<T>
+public abstract class Solver
 {
-    protected Vector<T>? solution;
-    protected Vector<T> vector = default!;
-    protected Matrix<T> matrix = default!;
-    public ImmutableArray<T>? Solution => solution?.ToImmutableArray();
+    protected Vector<double>? solution;
+    protected Vector<double> vector = default!;
+    protected Matrix<double> matrix = default!;
+    public ImmutableArray<double>? Solution => solution?.ToImmutableArray();
 
-    public void SetVector(Vector<T> vector)
+    public void SetVector(Vector<double> vector)
         => this.vector = vector;
 
-    public void SetMatrix(Matrix<T> matrix)
+    public void SetMatrix(Matrix<double> matrix)
         => this.matrix = matrix;
 
-    protected Solver(Matrix<T> matrix, Vector<T> vector)
+    protected Solver(Matrix<double> matrix, Vector<double> vector)
         => (this.matrix, this.vector) = (matrix, vector);
 
     protected Solver() { }
@@ -21,9 +21,9 @@ public abstract class Solver<T> where T : INumber<T>
     public abstract void Compute();
 }
 
-public class Gauss<T> : Solver<T> where T : INumber<T>
+public class Gauss : Solver
 {
-    public Gauss(Matrix<T> matrix, Vector<T> vector) : base(matrix, vector) { }
+    public Gauss(Matrix<double> matrix, Vector<double> vector) : base(matrix, vector) { }
 
     public Gauss() { }
 
@@ -42,18 +42,18 @@ public class Gauss<T> : Solver<T> where T : INumber<T>
             solution = new(vector.Size);
 
             double max;
-            double eps = 1E-07;
+            double eps = 1E-14;
 
             for (int k = 0; k < matrix.Rows; k++)
             {
-                max = Math.Abs(Convert.ToDouble(matrix[k, k]));
+                max = Math.Abs(matrix[k, k]);
                 int index = k;
 
                 for (int i = k + 1; i < matrix.Rows; i++)
                 {
-                    if (Math.Abs(Convert.ToDouble(matrix[i, k])) > max)
+                    if (Math.Abs(matrix[i, k]) > max)
                     {
-                        max = Math.Abs(Convert.ToDouble(matrix[i, k]));
+                        max = Math.Abs(matrix[i, k]);
                         index = i;
                     }
                 }
@@ -68,9 +68,9 @@ public class Gauss<T> : Solver<T> where T : INumber<T>
 
                 for (int i = k; i < matrix.Rows; i++)
                 {
-                    T temp = matrix[i, k];
+                    double temp = matrix[i, k];
 
-                    if (Math.Abs(Convert.ToDouble(temp)) < eps)
+                    if (Math.Abs(temp) < eps)
                     {
                         throw new Exception("Zero element of the column");
                     }
