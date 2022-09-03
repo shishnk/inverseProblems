@@ -12,8 +12,8 @@ public readonly record struct PowerReceiver(Point3D M, Point3D N);
 
 public class Parameters
 {
-    public PowerSource[] PowerSources { get; init; }
-    public PowerReceiver[] PowerReceivers { get; init; }
+    public PowerSource[] PowerSources { get; init; } = Array.Empty<PowerSource>();
+    public PowerReceiver[] PowerReceivers { get; init; } = Array.Empty<PowerReceiver>();
     public double Sigma { get; init; }
     public double RealCurrent { get; init; }
     public double PrimaryCurrent { get; init; }
