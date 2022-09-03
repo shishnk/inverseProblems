@@ -5,9 +5,9 @@ var parameters = new Parameters()
 {
     PowerSources = new[]
     {
-        new PowerSource(new(0, -500, 0), new(100, -500, 0)),
-        new PowerSource(new(0, 0, 0), new(100, 0, 0)),
-        new PowerSource(new(0, 500, 0), new(100, 500, 0)),
+        new PowerSource(new(0, -500, 0), new(100, -500, 0), 0.1, 0.01),
+        new PowerSource(new(0, 0, 0), new(100, 0, 0), 0.2, 0.02),
+        new PowerSource(new(0, 500, 0), new(100, 500, 0), 0.3, 0.03),
         //new PowerSource(new(0, 0, 0), new(100, 0, 0))
     },
     PowerReceivers = new[]
@@ -16,10 +16,8 @@ var parameters = new Parameters()
         new PowerReceiver(new(500, 0, 0), new(600, 0, 0)),
         new PowerReceiver(new(1000, 0, 0), new(1100, 0, 0)),
     },
-    Sigma = 0.1,
-    PrimaryCurrent = 0.01,
-    RealCurrent = 0.1
+    Sigma = 0.1
 };
 
-CurrentMeter currentMeter = CurrentMeter.CreateBuilder().SetParameters(parameters).SetSolver(new Gauss<double>());
+ElectroExploration currentMeter = ElectroExploration.CreateBuilder().SetParameters(parameters).SetSolver(new Gauss());
 currentMeter.Compute();
