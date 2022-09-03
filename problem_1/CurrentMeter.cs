@@ -25,7 +25,6 @@ public class CurrentMeter
     private Parameters _parameters = default!;
     private Solver<double> _solver = default!;
     private Matrix<double> _matrix = default!;
-    private Matrix<double> _weights = default!;
     private Matrix<double> _primaryPotentials = default!;
     private Matrix<double> _realPotentials = default!;
     private Vector<double> _vector = default!;
@@ -34,7 +33,6 @@ public class CurrentMeter
     {
         _matrix = new(_parameters.PowerSources.Length);
         _vector = new(_parameters.PowerSources.Length);
-        //_weights = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
         _realPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
     }
@@ -83,7 +81,7 @@ public class CurrentMeter
 
     private void AssemblySystem() // TODO
     {
-        for (int g = 0; g < _parameters.PowerSources.Length; g++)
+        for (int q = 0; q < _parameters.PowerSources.Length; q++)
         {
             for (int s = 0; s < _parameters.PowerSources.Length; s++)
             {
@@ -91,12 +89,10 @@ public class CurrentMeter
                 {
                     for (int j = 0; j < _parameters.PowerSources.Length; j++)
                     {
-                        double w = 1.0;
+                        _matrix[q, s] += (1.0 / (_realPotentials[j, i] * _primaryPotentials[j, i]) / _parameters.PrimaryCurrent) *
+                                        (1.0 / (_realPotentials[j, i] * _primaryPotentials[j, i]) / _parameters.PrimaryCurrent);
 
-                        _matrix[g, s] += (100.0 / _realPotentials[j, i] * _primaryPotentials[j, i] / _parameters.PrimaryCurrent) *
-                                        (100.0 / _realPotentials[j, i] * _primaryPotentials[j, i] / _parameters.PrimaryCurrent);
-
-                        _vector[g] -= -100.0 / (_realPotentials[j, i] * _realPotentials[j, i]) * (_primaryPotentials[j, i] / _parameters.PrimaryCurrent) * (_primaryPotentials[j, i] - _realPotentials[j, i]);
+                        _vector[q] += 1.0 / _realPotentials[j, i] * (_primaryPotentials[j, i] / _parameters.PrimaryCurrent) * (_primaryPotentials[j, i] - _realPotentials[j, i]);
                     }
                 }
             }
