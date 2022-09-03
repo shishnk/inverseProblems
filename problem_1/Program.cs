@@ -1,5 +1,6 @@
 ﻿using problem_1;
 
+// TODO -> возможно использовать JSON
 var parameters = new Parameters()
 {
     PowerSources = new[]
@@ -18,3 +19,6 @@ var parameters = new Parameters()
     PrimaryCurrent = 0.01,
     RealCurrent = 0.1
 };
+
+Solver solver = Solver.CreateBuilder().SetParameters(parameters);
+solver.Compute();
