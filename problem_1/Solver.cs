@@ -26,10 +26,10 @@ public class Solver
     private void Init()
     {
         _matrix = new(_parameters.PowerSources.Length);
-        _weights = new(_parameters.PowerReceivers.Length);
-        _primaryPotentials = new(_parameters.PowerReceivers.Length);
-        _realPotentials = new(_parameters.PowerReceivers.Length);
-        _vector = new(_matrix.Size);
+        //_weights = new(_parameters.PowerReceivers.Length);
+        _primaryPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
+        _realPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
+        //_vector = new(_matrix.Size);
     }
 
     public void Compute()
@@ -41,11 +41,11 @@ public class Solver
 
     private void DataGeneration() // TODO общий случай, если кол-во источников не совпадает с кол-вом приемников
     {
-        for (int i = 0; i < _parameters.PowerSources.Length; i++)
+        for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
         {
-            for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
+            for (int j = 0; j < _parameters.PowerSources.Length; j++)
             {
-                _realPotentials[i,j] = _parameters.RealCurrent / (2 * Math.PI * _parameters.Sigma) *
+                _realPotentials[j,i] = _parameters.RealCurrent / (2.0 * Math.PI * 0.01) *
                                      (1.0 / Point3D.Distance(_parameters.PowerSources[j].B,
                                           _parameters.PowerReceivers[i].M) -
                                       1.0 / Point3D.Distance(_parameters.PowerSources[j].A,
@@ -55,7 +55,7 @@ public class Solver
                                        1.0 / Point3D.Distance(_parameters.PowerSources[j].A,
                                            _parameters.PowerReceivers[i].N)));
 
-                _primaryPotentials[i,j] = _parameters.PrimaryCurrent / (2 * Math.PI * _parameters.Sigma) *
+                _primaryPotentials[j,i] = _parameters.PrimaryCurrent / (2.0 * Math.PI * 0.1) *
                                         (1.0 / Point3D.Distance(_parameters.PowerSources[j].B,
                                              _parameters.PowerReceivers[i].M) -
                                          1.0 / Point3D.Distance(_parameters.PowerSources[j].A,
