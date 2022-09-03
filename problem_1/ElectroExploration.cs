@@ -46,6 +46,22 @@ public class ElectroExploration
 
         _solver.SetMatrix(_matrix);
         _solver.SetVector(_vector);
+
+        for (int i = 0; i < _matrix.Rows; i++)
+        {
+            for (int j  = 0; j < _matrix.Columns; j++)
+            {
+                Console.Write($"{_matrix[i, j]}   ");
+            }
+            Console.WriteLine();
+        }
+
+        for (int i = 0; i < _vector.Size; i++)
+        {
+            Console.WriteLine($"{_vector[i]}");
+        }
+
+
         _solver.Compute();
 
         Array.ForEach(_solver.Solution!.Value.ToArray(), Console.WriteLine);
