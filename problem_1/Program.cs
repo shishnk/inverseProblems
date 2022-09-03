@@ -21,5 +21,5 @@ var parameters = new Parameters()
     RealCurrent = 1
 };
 
-CurrentMeter currentMeter = CurrentMeter.CreateBuilder().SetParameters(parameters);
+CurrentMeter currentMeter = CurrentMeter.CreateBuilder().SetParameters(parameters).SetSolver(new Gauss<double>());
 currentMeter.Compute();

@@ -13,4 +13,7 @@ public class Vector<T> where T : INumber<T>
 
     public Vector(int size)
         => (Size, _storage) = (size, new T[size]);
+
+    public ImmutableArray<T> ToImmutableArray()
+        => ImmutableArray.Create(_storage);
 }

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Runtime.Experimental" Version="6.0.2" />
+    <Using Include="System.Collections.Immutable" />
   </ItemGroup>
 
 </Project>

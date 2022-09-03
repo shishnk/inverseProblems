@@ -4,19 +4,26 @@ public class CurrentMeter
 {
     public class CurrentMeterBuilder
     {
-        private readonly CurrentMeter _solver = new();
+        private readonly CurrentMeter _currentMeter = new();
 
         public CurrentMeterBuilder SetParameters(Parameters parameters)
         {
-            _solver._parameters = parameters;
+            _currentMeter._parameters = parameters;
+            return this;
+        }
+
+        public CurrentMeterBuilder SetSolver(Solver<double> Gauss)
+        {
+            _currentMeter._solver = Gauss;
             return this;
         }
 
         public static implicit operator CurrentMeter(CurrentMeterBuilder builder)
-            => builder._solver;
+            => builder._currentMeter;
     }
 
     private Parameters _parameters = default!;
+    private Solver<double> _solver = default!;
     private Matrix<double> _matrix = default!;
     private Matrix<double> _weights = default!;
     private Matrix<double> _primaryPotentials = default!;
@@ -37,6 +44,12 @@ public class CurrentMeter
         Init();
         DataGeneration();
         AssemblySystem();
+
+        _solver.SetMatrix(_matrix);
+        _solver.SetVector(_vector);
+        _solver.Compute();
+
+        Array.ForEach(_solver.Solution!.Value.ToArray(), Console.WriteLine);
     }
 
     private void DataGeneration()
