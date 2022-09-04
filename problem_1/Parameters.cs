@@ -12,10 +12,10 @@ public readonly record struct PowerReceiver(Point3D M, Point3D N);
 
 public class Parameters
 {
-    [JsonRequired]
+    [JsonProperty("Power Sources",Required = Required.Always)]
     public PowerSource[] PowerSources { get; init; } = Array.Empty<PowerSource>();
     
-    [JsonRequired]
+    [JsonProperty("Power Receivers",Required = Required.Always)]
     public PowerReceiver[] PowerReceivers { get; init; } = Array.Empty<PowerReceiver>();
     
     [JsonRequired]
