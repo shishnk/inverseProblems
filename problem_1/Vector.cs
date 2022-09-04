@@ -16,4 +16,13 @@ public class Vector<T> where T : INumber<T>
 
     public ImmutableArray<T> ToImmutableArray()
         => ImmutableArray.Create(_storage);
+
+    public static Vector<T> Copy(Vector<T> otherVector)
+    {
+        Vector<T> newVector = new(otherVector.Size);
+
+        Array.Copy(otherVector._storage, newVector._storage, otherVector.Size);
+
+        return newVector;
+    }
 }
