@@ -11,8 +11,8 @@
         "Y": -500.0,
         "Z": 0.0
       },
-      "Real current": 0.1,
-      "Primary current": 0.01
+      "Real current": 1,
+      "Primary current": 0.1
     },
     {
       "A": {
@@ -25,8 +25,8 @@
         "Y": 0.0,
         "Z": 0.0
       },
-      "Real current": 0.2,
-      "Primary current": 0.02
+      "Real current": 2,
+      "Primary current": 0.2
     },
     {
       "A": {
@@ -39,20 +39,20 @@
         "Y": 500.0,
         "Z": 0.0
       },
-      "Real current": 0.3,
-      "Primary current": 0.03
+      "Real current": 3,
+      "Primary current": 0.3
     }
   ],
   "Power receivers": [
     {
       "M": {
         "X": 200.0,
-        "Y": 0.0,
+        "Y": 1.0,
         "Z": 0.0
       },
       "N": {
         "X": 300.0,
-        "Y": 0.0,
+        "Y": 1.0,
         "Z": 0.0
       }
     },
@@ -71,12 +71,12 @@
     {
       "M": {
         "X": 1000.0,
-        "Y": 0.0,
+        "Y": 2.0,
         "Z": 0.0
       },
       "N": {
         "X": 1100.0,
-        "Y": 0.0,
+        "Y": 2.0,
         "Z": 0.0
       }
     }
