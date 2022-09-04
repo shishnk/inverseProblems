@@ -2,7 +2,8 @@
 
 public class ElectroExploration
 {
-    public class ElectroExplorationBuilder {
+    public class ElectroExplorationBuilder
+    {
         private readonly ElectroExploration _electroExploration = new();
 
         public ElectroExplorationBuilder SetParameters(Parameters parameters)
@@ -11,7 +12,7 @@ public class ElectroExploration
             return this;
         }
 
-        public ElectroExplorationBuilder SetSolver(Solver Gauss)
+        public ElectroExplorationBuilder SetSolver(DenseMatrixSolver Gauss)
         {
             _electroExploration._solver = Gauss;
             return this;
@@ -22,20 +23,30 @@ public class ElectroExploration
     }
 
     private Parameters _parameters = default!;
-    private Solver _solver = default!;
+    private DenseMatrixSolver _solver = default!;
     private Matrix<double> _matrix = default!;
-    private Matrix<double> _primaryPotentials = default!;
-    private Matrix<double> _realPotentials = default!;
     private Matrix<double> _potentialsDiffs = default!;
     private Vector<double> _vector = default!;
+    private Vector<double> _currents = default!;
+    private Vector<double> _realPotentials = default!;
+    private Vector<double> _primaryPotentials = default!;
+
+    private double _alphaRegulator = 1e-15;
 
     private void Init()
     {
         _matrix = new(_parameters.PowerSources.Length);
         _vector = new(_parameters.PowerSources.Length);
-        _primaryPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
-        _realPotentials = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
+        _currents = new(_parameters.PowerSources.Length);
         _potentialsDiffs = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
+
+        _realPotentials = new(_parameters.PowerReceivers.Length);
+        _primaryPotentials = new(_parameters.PowerReceivers.Length);
+
+        for (int i = 0; i < _currents.Length; i++)
+        {
+            _currents[i] = _parameters.PowerSources[i].PrimaryCurrent;
+        }
     }
 
     public void Compute()
@@ -44,27 +55,27 @@ public class ElectroExploration
         DataGeneration();
         AssemblySystem();
 
-        _solver.SetMatrix(_matrix);
-        _solver.SetVector(_vector);
-
-        for (int i = 0; i < _matrix.Rows; i++)
+        do
         {
-            for (int j  = 0; j < _matrix.Columns; j++)
-            {
-                Console.Write($"{_matrix[i, j]}   ");
-            }
-            Console.WriteLine();
+            _solver.SetMatrix(_matrix);
+            _solver.SetVector(_vector);
+            _solver.Compute();
+            
+            Regularization();
+
+            _alphaRegulator *= 2.0;
+
+        } while (_solver.Solution is null);
+
+        for (int i = 0; i < _currents.Length; i++)
+        {
+            _currents[i] += _solver.Solution!.Value[i];
         }
 
-        for (int i = 0; i < _vector.Size; i++)
+        for (int i = 0; i < _currents.Length; i++)
         {
-            Console.WriteLine($"{_vector[i]}");
+            Console.WriteLine($"I{i + 1} = {_currents[i]}");
         }
-
-
-        _solver.Compute();
-
-        Array.ForEach(_solver.Solution!.Value.ToArray(), Console.WriteLine);
     }
 
     private void DataGeneration()
@@ -74,36 +85,50 @@ public class ElectroExploration
             for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
             {
                 _potentialsDiffs[i, j] =
-                1.0 / (2.0 * Math.PI * _parameters.Sigma) * (
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
-                1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
+                    1.0 / (2.0 * Math.PI * _parameters.Sigma) * (
+                    1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
+                    1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
+                    1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
+                    1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
 
-                _realPotentials[i, j] = _potentialsDiffs[i, j] * _parameters.PowerSources[i].RealCurrent;
-
-                _primaryPotentials[i, j] = _potentialsDiffs[i, j] * _parameters.PowerSources[i].PrimaryCurrent;
+                _realPotentials[j] += _parameters.PowerSources[i].RealCurrent * _potentialsDiffs[i, j];
+                _primaryPotentials[j] += _parameters.PowerSources[i].PrimaryCurrent * _potentialsDiffs[i, j];
             }
         }
     }
 
     private void AssemblySystem()
     {
-        for (int g = 0; g < _parameters.PowerSources.Length; g++)
+        for (int q = 0; q < _parameters.PowerSources.Length; q++)
         {
             for (int s = 0; s < _parameters.PowerSources.Length; s++)
             {
-                for (int i = 0; i < _parameters.PowerSources.Length; i++)
+                for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
                 {
-                    for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
-                    {
-                        double w = 1.0 / _realPotentials[i, j];
+                    double w = 1.0 / _realPotentials[i];
 
-                        _matrix[g, s] += w * w * _potentialsDiffs[i, j] * _potentialsDiffs[i, j];
-
-                        _vector[g] -= w * w * _potentialsDiffs[i, j] * (_primaryPotentials[i, j] - _realPotentials[i, j]);
-                    }
+                    _matrix[q, s] += w * w * _potentialsDiffs[q, i] * _potentialsDiffs[s, i];
                 }
+            }
+
+            for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
+            {
+                double w = 1.0 / _realPotentials[i];
+
+                _vector[q] -= w * w * _potentialsDiffs[q, i] * (_primaryPotentials[i] - _realPotentials[i]);
+            }
+        }
+    }
+
+    private void Regularization()
+    {
+        for (int i = 0; i < _matrix.Rows; i++)
+        {
+            _matrix[i, i] += _alphaRegulator;
+
+            for (int j = 0; j < _parameters.PowerSources.Length; j++)
+            {
+                _vector[i] -= _alphaRegulator * (_parameters.PowerSources[j].PrimaryCurrent - _parameters.PowerSources[j].RealCurrent);
             }
         }
     }
