@@ -1,5 +1,5 @@
 ﻿{
-  "PowerSources": [
+  "Power sources": [
     {
       "A": {
         "X": 0.0,
@@ -11,8 +11,8 @@
         "Y": -500.0,
         "Z": 0.0
       },
-      "RealCurrent": 0.1,
-      "PrimaryCurrent": 0.01
+      "Real current": 0.1,
+      "Primary current": 0.01
     },
     {
       "A": {
@@ -25,8 +25,8 @@
         "Y": 0.0,
         "Z": 0.0
       },
-      "RealCurrent": 0.2,
-      "PrimaryCurrent": 0.02
+      "Real current": 0.2,
+      "Primary current": 0.02
     },
     {
       "A": {
@@ -39,11 +39,11 @@
         "Y": 500.0,
         "Z": 0.0
       },
-      "RealCurrent": 0.3,
-      "PrimaryCurrent": 0.03
+      "Real current": 0.3,
+      "Primary current": 0.03
     }
   ],
-  "PowerReceivers": [
+  "Power receivers": [
     {
       "M": {
         "X": 200.0,
