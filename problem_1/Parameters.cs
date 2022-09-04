@@ -12,7 +12,34 @@ public readonly record struct PowerReceiver(Point3D M, Point3D N);
 
 public class Parameters
 {
+    [JsonRequired]
     public PowerSource[] PowerSources { get; init; } = Array.Empty<PowerSource>();
+    
+    [JsonRequired]
     public PowerReceiver[] PowerReceivers { get; init; } = Array.Empty<PowerReceiver>();
+    
+    [JsonRequired]
     public double Sigma { get; init; }
+
+    public static Parameters? ReadJson(string jsonPath)
+    {
+        try
+        {
+            if (!File.Exists(jsonPath))
+            {
+                throw new Exception("File does not exist");
+            }
+
+            var sr = new StreamReader(jsonPath);
+            using (sr)
+            {
+                return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd());
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"We had problem: {ex.Message}");
+            return null;
+        }
+    }
 }
