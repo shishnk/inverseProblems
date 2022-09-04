@@ -8,13 +8,13 @@ public abstract class Solver
     public ImmutableArray<double>? Solution => MutableSolution?.ToImmutableArray();
 
     public void SetVector(Vector<double> vector)
-        => this.Vector = vector;
+        => this.Vector = Vector<double>.Copy(vector);
 
     public void SetMatrix(Matrix<double> matrix)
-        => Matrix = matrix;
+        => Matrix = Matrix<double>.Copy(matrix);
 
     protected Solver(Matrix<double> matrix, Vector<double> vector)
-        => (Matrix, Vector) = (matrix, vector);
+        => (Matrix, Vector) = (Matrix<double>.Copy(matrix), Vector<double>.Copy(vector));
 
     protected Solver() { }
 
