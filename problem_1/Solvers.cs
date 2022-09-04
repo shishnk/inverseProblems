@@ -39,10 +39,8 @@ public class Gauss : Solver
                 throw new NotSupportedException("The Gaussian method will not be able to solve this system");
             }
 
-            MutableSolution = new(Vector.Size);
-
             double max;
-            double eps = 1E-14;
+            double eps = 1E-15;
 
             for (int k = 0; k < Matrix.Rows; k++)
             {
@@ -93,6 +91,8 @@ public class Gauss : Solver
                     }
                 }
             }
+
+            MutableSolution = new(Vector.Size);
 
             for (int k = Matrix.Rows - 1; k >= 0; k--)
             {
