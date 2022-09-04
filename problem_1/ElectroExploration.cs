@@ -12,7 +12,7 @@ public class ElectroExploration
             return this;
         }
 
-        public ElectroExplorationBuilder SetSolver(Solver Gauss)
+        public ElectroExplorationBuilder SetSolver(DenseMatrixSolver Gauss)
         {
             _electroExploration._solver = Gauss;
             return this;
@@ -23,7 +23,7 @@ public class ElectroExploration
     }
 
     private Parameters _parameters = default!;
-    private Solver _solver = default!;
+    private DenseMatrixSolver _solver = default!;
     private Matrix<double> _matrix = default!;
     private Matrix<double> _potentialsDiffs = default!;
     private Vector<double> _vector = default!;
@@ -43,7 +43,7 @@ public class ElectroExploration
         _realPotentials = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new(_parameters.PowerReceivers.Length);
 
-        for (int i = 0; i < _currents.Size; i++)
+        for (int i = 0; i < _currents.Length; i++)
         {
             _currents[i] = _parameters.PowerSources[i].PrimaryCurrent;
         }
@@ -59,21 +59,23 @@ public class ElectroExploration
         {
             _solver.SetMatrix(_matrix);
             _solver.SetVector(_vector);
-
             _solver.Compute();
-
+            
             Regularization();
 
             _alphaRegulator *= 2.0;
 
         } while (_solver.Solution is null);
 
-        for (int i = 0; i < _currents.Size; i++)
+        for (int i = 0; i < _currents.Length; i++)
         {
             _currents[i] += _solver.Solution!.Value[i];
         }
 
-        Array.ForEach(_currents.ToImmutableArray().ToArray(), Console.WriteLine);
+        for (int i = 0; i < _currents.Length; i++)
+        {
+            Console.WriteLine($"I{i + 1} = {_currents[i]}");
+        }
     }
 
     private void DataGeneration()
