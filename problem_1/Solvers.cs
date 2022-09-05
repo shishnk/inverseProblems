@@ -19,6 +19,10 @@ public abstract class Solver
     protected Solver() { }
 
     public abstract void Compute();
+
+    public bool IsSolved() {
+        return !(Solution is null);
+    }
 }
 
 public class Gauss : Solver

@@ -25,4 +25,16 @@ public class Vector<T> where T : INumber<T>
 
         return newVector;
     }
+
+// TODO make IEnumerable
+    public void Cast<U>(IEnumerable<U> from, Func<U, T> getRule)
+    {
+        int i = 0;
+
+        foreach(U item in from)
+        {
+            _storage[i] = getRule(item);
+            i++;
+        }
+    }
 }

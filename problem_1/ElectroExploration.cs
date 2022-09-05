@@ -43,30 +43,13 @@ public class ElectroExploration
         _realPotentials = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new(_parameters.PowerReceivers.Length);
 
-        for (int i = 0; i < _currents.Size; i++)
-        {
-            _currents[i] = _parameters.PowerSources[i].PrimaryCurrent;
-        }
+        _currents.Cast(_parameters.PowerSources, x => x.PrimaryCurrent);
     }
 
     public void Compute()
     {
-        Init();
-        DataGeneration();
-        AssemblySystem();
-
-        do
-        {
-            _solver.SetMatrix(_matrix);
-            _solver.SetVector(_vector);
-
-            _solver.Compute();
-
-            Regularization();
-
-            _alphaRegulator *= 2.0;
-
-        } while (_solver.Solution is null);
+        SetupSystem();
+        SolveSystem();
 
         for (int i = 0; i < _currents.Size; i++)
         {
@@ -74,6 +57,13 @@ public class ElectroExploration
         }
 
         Array.ForEach(_currents.ToImmutableArray().ToArray(), Console.WriteLine);
+    }
+
+    private void SetupSystem()
+    {
+        Init();
+        DataGeneration();
+        AssemblySystem();
     }
 
     private void DataGeneration()
@@ -116,6 +106,22 @@ public class ElectroExploration
                 _vector[q] -= w * w * _potentialsDiffs[q, i] * (_primaryPotentials[i] - _realPotentials[i]);
             }
         }
+    }
+
+    private void SolveSystem()
+    {
+        do
+        {
+            _solver.SetMatrix(_matrix);
+            _solver.SetVector(_vector);
+
+            _solver.Compute();
+
+            Regularization();
+
+            _alphaRegulator *= 2.0;
+
+        } while (!_solver.IsSolved());
     }
 
     private void Regularization()
