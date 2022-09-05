@@ -130,10 +130,7 @@ public class ElectroExploration
         {
             _matrix[i, i] += _alphaRegulator;
 
-            for (int j = 0; j < _parameters.PowerSources.Length; j++)
-            {
-                _vector[i] -= _alphaRegulator * (_parameters.PowerSources[j].PrimaryCurrent - _parameters.PowerSources[j].RealCurrent);
-            }
+            _vector[i] -= _alphaRegulator * (_parameters.PowerSources[i].PrimaryCurrent - _parameters.PowerSources[i].RealCurrent);
         }
     }
 
