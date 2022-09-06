@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace problem_1;
+﻿namespace problem_1;
 
 public class Vector<T> : IEnumerable<T> where T : INumber<T>
 {

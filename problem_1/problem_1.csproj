@@ -13,6 +13,7 @@
     <PackageReference Include="System.Runtime.Experimental" Version="6.0.2" />
     <Using Include="System.Collections.Immutable" />
     <Using Include="Newtonsoft.Json" />
+    <Using Include="System.Collections" />
   </ItemGroup>
 
   <ItemGroup>
