@@ -1,6 +1,8 @@
-﻿namespace problem_1;
+﻿using System.Collections;
 
-public class Vector<T> where T : INumber<T>
+namespace problem_1;
+
+public class Vector<T> : IEnumerable<T> where T : INumber<T>
 {
     private readonly T[] _storage;
     public int Size { get; }
@@ -26,25 +28,36 @@ public class Vector<T> where T : INumber<T>
         return newVector;
     }
 
-    public void ApplyBy<U>(IEnumerable<U> from, Func<U, T> pullOutRule)
+    public void ApplyBy<TIn>(IEnumerable<TIn> from, Func<TIn, T> pullOutRule)
     {
         try
         {
             ApplyByLogic(from, pullOutRule);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            throw new Exception("Vector and IEnumerable sizes can't be different", ex);
+            throw new("Vector and IEnumerable sizes can't be different", ex);
         }
     }
 
-    private void ApplyByLogic<U>(IEnumerable<U> from, Func<U, T> pullOutRule) {
+    private void ApplyByLogic<TIn>(IEnumerable<TIn> from, Func<TIn, T> pullOutRule)
+    {
         int index = 0;
 
-        foreach(U item in from)
+        foreach (TIn item in from)
         {
             _storage[index] = pullOutRule(item);
             index++;
         }
     }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        foreach (var value in _storage)
+        {
+            yield return value;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

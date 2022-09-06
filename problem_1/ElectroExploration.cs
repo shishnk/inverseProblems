@@ -56,7 +56,10 @@ public class ElectroExploration
             _currents[i] += _solver.Solution!.Value[i];
         }
 
-        Array.ForEach(_currents.ToImmutableArray().ToArray(), Console.WriteLine);
+        foreach (var (current, idx) in _currents.Select((current, idx) => (current, idx)))
+        {
+            Console.WriteLine($"I{idx + 1} = {current}");
+        }
     }
 
     private void SetupSystem()
@@ -74,10 +77,10 @@ public class ElectroExploration
             {
                 _potentialsDiffs[i, j] =
                     1.0 / (2.0 * Math.PI * _parameters.Sigma) * (
-                    1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
-                    1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
-                    1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
-                    1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
+                        1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].M) -
+                        1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].M) -
+                        1.0 / Point3D.Distance(_parameters.PowerSources[i].B, _parameters.PowerReceivers[j].N) +
+                        1.0 / Point3D.Distance(_parameters.PowerSources[i].A, _parameters.PowerReceivers[j].N));
 
                 _realPotentials[j] += _parameters.PowerSources[i].RealCurrent * _potentialsDiffs[i, j];
                 _primaryPotentials[j] += _parameters.PowerSources[i].PrimaryCurrent * _potentialsDiffs[i, j];
@@ -120,7 +123,6 @@ public class ElectroExploration
             Regularization();
 
             _alphaRegulator *= 2.0;
-
         } while (!_solver.IsSolved());
     }
 
@@ -130,7 +132,8 @@ public class ElectroExploration
         {
             _matrix[i, i] += _alphaRegulator;
 
-            _vector[i] -= _alphaRegulator * (_parameters.PowerSources[i].PrimaryCurrent - _parameters.PowerSources[i].RealCurrent);
+            _vector[i] -= _alphaRegulator *
+                          (_parameters.PowerSources[i].PrimaryCurrent - _parameters.PowerSources[i].RealCurrent);
         }
     }
 
