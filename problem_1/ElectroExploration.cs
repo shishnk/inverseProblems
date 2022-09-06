@@ -43,7 +43,7 @@ public class ElectroExploration
         _realPotentials = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new(_parameters.PowerReceivers.Length);
 
-        _currents.Cast(_parameters.PowerSources, x => x.PrimaryCurrent);
+        _currents.ApplyBy(_parameters.PowerSources, x => x.PrimaryCurrent);
     }
 
     public void Compute()

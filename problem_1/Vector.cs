@@ -26,15 +26,25 @@ public class Vector<T> where T : INumber<T>
         return newVector;
     }
 
-// TODO make IEnumerable
-    public void Cast<U>(IEnumerable<U> from, Func<U, T> getRule)
+    public void ApplyBy<U>(IEnumerable<U> from, Func<U, T> pullOutRule)
     {
-        int i = 0;
+        try
+        {
+            ApplyByLogic(from, pullOutRule);
+        }
+        catch(Exception ex)
+        {
+            throw new Exception("Vector and IEnumerable sizes can't be different", ex);
+        }
+    }
+
+    private void ApplyByLogic<U>(IEnumerable<U> from, Func<U, T> pullOutRule) {
+        int index = 0;
 
         foreach(U item in from)
         {
-            _storage[i] = getRule(item);
-            i++;
+            _storage[index] = pullOutRule(item);
+            index++;
         }
     }
 }
