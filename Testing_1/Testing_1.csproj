@@ -7,6 +7,8 @@
         <EnablePreviewFeatures>true</EnablePreviewFeatures>
 
         <IsPackable>false</IsPackable>
+
+        <RootNamespace>Testing</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace Testing;
 
 public class Test
