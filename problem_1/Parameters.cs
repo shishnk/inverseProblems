@@ -22,7 +22,7 @@ public class Parameters
 
     [JsonRequired] public double Sigma { get; init; }
 
-    public static Parameters? ReadJson(string jsonPath)
+    public static Parameters ReadJson(string jsonPath)
     {
         try
         {
@@ -31,16 +31,14 @@ public class Parameters
                 throw new Exception("File does not exist");
             }
 
-            var sr = new StreamReader(jsonPath);
-            using (sr)
-            {
-                return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd());
-            }
+            using var sr = new StreamReader(jsonPath);
+            return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd()) ??
+                   throw new NullReferenceException("Fill in the parameter data correctly");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"We had problem: {ex.Message}");
-            return null;
+            throw;
         }
     }
 }
