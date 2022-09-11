@@ -27,23 +27,39 @@ public class ElectroExploration
     private Matrix<double> _matrix = default!;
     private Matrix<double> _potentialsDiffs = default!;
     private Vector<double> _vector = default!;
-    private Vector<double> _currents = default!;
     private Vector<double> _realPotentials = default!;
     private Vector<double> _primaryPotentials = default!;
-
     private double _alphaRegulator = 1e-15;
+    public Vector<double> Currents { get; private set; } = default!;
+    public Parameters Parameters => _parameters;
+    public bool IsSameHeight { get; private set; }
+
 
     private void Init()
     {
         _matrix = new(_parameters.PowerSources.Length);
         _vector = new(_parameters.PowerSources.Length);
-        _currents = new(_parameters.PowerSources.Length);
-        _potentialsDiffs = new(_parameters.PowerSources.Length, _parameters.PowerReceivers.Length);
+        Currents = new(_parameters.PowerSources.Length);
+        _potentialsDiffs = new(_parameters.PowerSources.Length,
+            _parameters.PowerReceivers.Length);
 
         _realPotentials = new(_parameters.PowerReceivers.Length);
         _primaryPotentials = new(_parameters.PowerReceivers.Length);
 
-        _currents.ApplyBy(_parameters.PowerSources, x => x.PrimaryCurrent);
+        Currents.ApplyBy(_parameters.PowerSources, x => x.PrimaryCurrent);
+
+        var height = _parameters.PowerReceivers[0].M.Z;
+
+        foreach (var receiver in _parameters.PowerReceivers)
+        {
+            if (Math.Abs(height - receiver.M.Z) > 1E-07 || Math.Abs(height - receiver.N.Z) > 1E-07)
+            {
+                IsSameHeight = false;
+                break;
+            }
+        }
+
+        IsSameHeight = true;
     }
 
     public void Compute()
@@ -51,15 +67,15 @@ public class ElectroExploration
         SetupSystem();
         SolveSystem();
 
-        for (int i = 0; i < _currents.Size; i++)
+        for (int i = 0; i < Currents.Length; i++)
         {
-            _currents[i] += _solver.Solution!.Value[i];
+            Currents[i] += _solver.Solution!.Value[i];
         }
 
-        foreach (var (current, idx) in _currents.Select((current, idx) => (current, idx)))
-        {
-            Console.WriteLine($"I{idx + 1} = {current}");
-        }
+        // foreach (var (current, idx) in _currents.Select((current, idx) => (current, idx)))
+        // {
+        //     Console.WriteLine($"I{idx + 1} = {current}");
+        // }
     }
 
     private void SetupSystem()

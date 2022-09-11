@@ -96,7 +96,7 @@ public class Gauss : Solver
                 }
             }
 
-            MutableSolution = new(Vector.Size);
+            MutableSolution = new(Vector.Length);
 
             for (int k = Matrix.Rows - 1; k >= 0; k--)
             {

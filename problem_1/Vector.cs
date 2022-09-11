@@ -3,7 +3,7 @@
 public class Vector<T> : IEnumerable<T> where T : INumber<T>
 {
     private readonly T[] _storage;
-    public int Size { get; }
+    public int Length { get; }
 
     public T this[int idx]
     {
@@ -11,17 +11,17 @@ public class Vector<T> : IEnumerable<T> where T : INumber<T>
         set => _storage[idx] = value;
     }
 
-    public Vector(int size)
-        => (Size, _storage) = (size, new T[size]);
+    public Vector(int length)
+        => (Length, _storage) = (length, new T[length]);
 
     public ImmutableArray<T> ToImmutableArray()
         => ImmutableArray.Create(_storage);
 
     public static Vector<T> Copy(Vector<T> otherVector)
     {
-        Vector<T> newVector = new(otherVector.Size);
+        Vector<T> newVector = new(otherVector.Length);
 
-        Array.Copy(otherVector._storage, newVector._storage, otherVector.Size);
+        Array.Copy(otherVector._storage, newVector._storage, otherVector.Length);
 
         return newVector;
     }

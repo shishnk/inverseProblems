@@ -22,7 +22,7 @@ public class Parameters
 
     [JsonRequired] public double Sigma { get; init; }
 
-    public static Parameters? ReadJson(string jsonPath)
+    public static Parameters ReadJson(string jsonPath)
     {
         try
         {
@@ -34,13 +34,14 @@ public class Parameters
             var sr = new StreamReader(jsonPath);
             using (sr)
             {
-                return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd());
+                return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd()) ??
+                       throw new InvalidOperationException();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"We had problem: {ex.Message}");
-            return null;
+            throw;
         }
     }
 }
