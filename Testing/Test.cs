@@ -1,7 +1,13 @@
+using Xunit.Abstractions;
+
 namespace Testing;
 
 public class Test
 {
+    private readonly ITestOutputHelper _output;
+
+    public Test(ITestOutputHelper output) => _output = output;
+
     // [Theory]
     // [InlineData("Tests/test1.json", new[] { 1.0, 2.0, 3.0 })]
     // // [InlineData("test2.json", new[] { 1.0, 2.0, 3.0 })]
@@ -39,7 +45,14 @@ public class Test
         electroExploration.Compute();
 
         Assert.True(SolvedCorrectly(electroExploration));
+
+        foreach (var (current, idx) in electroExploration.Currents.Select((current, idx) => (current, idx)))
+        {
+            _output.WriteLine(
+                $"I{idx + 1} = {current}\t\t I{idx + 1}* = {electroExploration.Parameters.PowerSources[idx].RealCurrent}");
+        }
     }
+
 
     public static IEnumerable<object[]> Data()
     {

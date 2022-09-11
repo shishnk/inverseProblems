@@ -32,7 +32,7 @@ public class ElectroExploration
     private double _alphaRegulator = 1e-15;
     public Vector<double> Currents { get; private set; } = default!;
     public Parameters Parameters => _parameters;
-    public bool IsSameHeight { get; private set; }
+    public bool IsSameHeight { get; private set; } = true;
 
 
     private void Init()
@@ -58,8 +58,6 @@ public class ElectroExploration
                 break;
             }
         }
-
-        IsSameHeight = true;
     }
 
     public void Compute()
