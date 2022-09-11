@@ -31,12 +31,9 @@ public class Parameters
                 throw new Exception("File does not exist");
             }
 
-            var sr = new StreamReader(jsonPath);
-            using (sr)
-            {
-                return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd()) ??
-                       throw new InvalidOperationException();
-            }
+            using var sr = new StreamReader(jsonPath);
+            return JsonConvert.DeserializeObject<Parameters>(sr.ReadToEnd()) ??
+                   throw new NullReferenceException("Fill in the parameter data correctly");
         }
         catch (Exception ex)
         {
