@@ -22,7 +22,7 @@ public class Test
     private bool Compare<T>(Vector<T> solution, PowerSource[] excepted, bool isSameHeight)
         where T : INumber<T>
     {
-        var eps = isSameHeight ? 1E-01 : 1E-07;
+        var eps = isSameHeight ? 1E-01 : 1E-01;
 
         for (int i = 0; i < solution.Length; i++)
         {
@@ -47,7 +47,7 @@ public class Test
         foreach (var (current, idx) in electroExploration.Currents.Select((current, idx) => (current, idx)))
         {
             _output.WriteLine(
-                $"I{idx + 1} = {current}\t\t I{idx + 1}* = {electroExploration.Parameters.PowerSources[idx].RealCurrent}");
+                $"I{idx + 1} = {current}\t\tI{idx + 1}* = {electroExploration.Parameters.PowerSources[idx].RealCurrent}");
         }
     }
 
@@ -64,6 +64,30 @@ public class Test
         {
             ElectroExploration.CreateBuilder()
                 .SetParameters(Parameters.ReadJson("Tests/test2.json"))
+                .SetSolver(new Gauss())
+        };
+        yield return new object[]
+        {
+            ElectroExploration.CreateBuilder()
+                .SetParameters(Parameters.ReadJson("Tests/test3.json"))
+                .SetSolver(new Gauss())
+        };
+        yield return new object[]
+        {
+            ElectroExploration.CreateBuilder()
+                .SetParameters(Parameters.ReadJson("Tests/test4.json"))
+                .SetSolver(new Gauss())
+        };
+        yield return new object[]
+        {
+            ElectroExploration.CreateBuilder()
+                .SetParameters(Parameters.ReadJson("Tests/test5.json"))
+                .SetSolver(new Gauss())
+        };
+        yield return new object[]
+        {
+            ElectroExploration.CreateBuilder()
+                .SetParameters(Parameters.ReadJson("Tests/test6.json"))
                 .SetSolver(new Gauss())
         };
     }
