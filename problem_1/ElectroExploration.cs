@@ -12,9 +12,9 @@ public class ElectroExploration
             return this;
         }
 
-        public ElectroExplorationBuilder SetSolver(Solver Gauss)
+        public ElectroExplorationBuilder SetSolver(Solver solver)
         {
-            _electroExploration._solver = Gauss;
+            _electroExploration._solver = solver;
             return this;
         }
 
@@ -51,7 +51,7 @@ public class ElectroExploration
         SetupSystem();
         SolveSystem();
 
-        for (int i = 0; i < _currents.Size; i++)
+        for (int i = 0; i < _currents.Length; i++)
         {
             _currents[i] += _solver.Solution!.Value[i];
         }
