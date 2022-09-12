@@ -14,7 +14,7 @@ public class ElectroExploration
 
         public ElectroExplorationBuilder SetSolver(Solver solver)
         {
-            _electroExploration._solver = Gauss;
+            _electroExploration._solver = solver;
             return this;
         }
 
@@ -32,7 +32,6 @@ public class ElectroExploration
     private double _alphaRegulator = 1e-15;
     public Vector<double> Currents { get; private set; } = default!;
     public Parameters Parameters => _parameters;
-    public bool IsSameHeight { get; private set; } = true;
 
 
     private void Init()
@@ -47,17 +46,6 @@ public class ElectroExploration
         _primaryPotentials = new(_parameters.PowerReceivers.Length);
 
         Currents.ApplyBy(_parameters.PowerSources, x => x.PrimaryCurrent);
-
-        var height = _parameters.PowerReceivers[0].M.Z;
-
-        foreach (var receiver in _parameters.PowerReceivers)
-        {
-            if (Math.Abs(height - receiver.M.Z) > 1E-07 || Math.Abs(height - receiver.N.Z) > 1E-07)
-            {
-                IsSameHeight = false;
-                break;
-            }
-        }
     }
 
     public void Compute()
@@ -70,7 +58,7 @@ public class ElectroExploration
             Currents[i] += _solver.Solution!.Value[i];
         }
 
-        foreach (var (current, idx) in _currents.Select((current, idx) => (current, idx)))
+        foreach (var (current, idx) in Currents.Select((current, idx) => (current, idx)))
         {
             Console.WriteLine($"I{idx + 1} = {current}");
         }
