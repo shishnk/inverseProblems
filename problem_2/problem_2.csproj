@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2"/>
+        <Using Include="Newtonsoft.Json"/>
+        <Using Include="System.ComponentModel.DataAnnotations"/>
+        <Using Include="System.Collections.Immutable"/>
+        <Using Include="problem_2"/>
+        <Using Include="problem_2.Grids"/>
+    </ItemGroup>
+
+</Project>
