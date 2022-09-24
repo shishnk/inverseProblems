@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class FEMBuilder
 {

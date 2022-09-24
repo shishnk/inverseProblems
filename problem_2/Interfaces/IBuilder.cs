@@ -1,4 +1,6 @@
-﻿namespace problem_2;
+﻿using problem_2.Source;
+
+namespace problem_2;
 
 public interface IMeshBuilder
 {

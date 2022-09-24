@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class Mesh
 {
@@ -15,9 +15,7 @@ public class Mesh
 
     public void Save(string path)
     {
-        using (var sw = new StreamWriter(path))
-        {
-            sw.Write(JsonConvert.SerializeObject(this));
-        }
+        using var sw = new StreamWriter(path);
+        sw.Write(JsonConvert.SerializeObject(this));
     }
 }

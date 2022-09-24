@@ -1,4 +1,6 @@
-﻿namespace problem_2;
+﻿using problem_2.Source;
+
+namespace problem_2;
 
 public interface IBasis
 {
@@ -6,5 +8,5 @@ public interface IBasis
 
     double Psi(int ifunc, Point2D point);
 
-    double DPsi(int iFunc, int iVar, Point2D point);
+    double DPsi(int ifunc, int ivar, Point2D point);
 }
