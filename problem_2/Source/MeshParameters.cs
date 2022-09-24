@@ -1,17 +1,23 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public readonly record struct MeshParameters(
-    [property: JsonProperty("Interval R"), Required] Interval IntervalR,
-    [property: JsonProperty("Splits R"), Required] int SplitsR,
-    [property: JsonProperty("Coefficient R"), Required] double KR,
-    [property: JsonProperty("Interval Z"), Required] Interval IntervalZ,
-    [property: JsonProperty("Splits Z"), Required] int SplitsZ,
-    [property: JsonProperty("Coefficient Z"), Required] double KZ,
-    [property: Required] double H1, 
+    [property: JsonProperty("Interval R"), Required]
+    Interval IntervalR,
+    [property: JsonProperty("Splits R"), Required]
+    int SplitsR,
+    [property: JsonProperty("Coefficient R"), Required]
+    double KR,
+    [property: JsonProperty("Interval Z"), Required]
+    Interval IntervalZ,
+    [property: JsonProperty("Splits Z"), Required]
+    int SplitsZ,
+    [property: JsonProperty("Coefficient Z"), Required]
+    double KZ,
+    [property: Required] double H1,
     [property: Required] double H2,
-    [property: Required] double Sigma1, 
+    [property: Required] double Sigma1,
     [property: Required] double Sigma2
-) 
+)
 {
     public static MeshParameters ReadJson(string jsonPath)
     {

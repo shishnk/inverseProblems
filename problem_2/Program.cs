@@ -1,1 +1,1 @@
-﻿// GridFactory gridFactory = new RegularGridFactory(GridParameters.ReadJson("gridParameters.json"));
+﻿

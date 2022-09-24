@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public readonly record struct Point2D(double R, double Z)
 {
@@ -14,6 +14,7 @@ public readonly record struct Interval
     [JsonProperty("Right border")] public double RightBorder { get; init; }
     [JsonIgnore] public double Length => Math.Abs(RightBorder - LeftBorder);
 
-    [JsonConstructor] public Interval(double leftBorder, double rightBorder) =>
+    [JsonConstructor]
+    public Interval(double leftBorder, double rightBorder) =>
         (LeftBorder, RightBorder) = (leftBorder, rightBorder);
 }

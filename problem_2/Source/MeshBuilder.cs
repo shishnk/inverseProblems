@@ -1,8 +1,8 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class MeshBuilder : IMeshBuilder
 {
-    private MeshParameters _params;
+    private readonly MeshParameters _params;
     private Point2D[] _points = default!;
     private FiniteElement[] _elements = default!;
     private double[] _materials = default!;
@@ -19,10 +19,12 @@ public class MeshBuilder : IMeshBuilder
         double rPoint = _params.IntervalR.LeftBorder;
         double zPoint = _params.IntervalZ.LeftBorder;
 
-        double hr = _params.KR == 1 ? (_params.IntervalR.Length) / _params.SplitsR 
+        double hr = _params.KR == 1.0
+            ? (_params.IntervalR.Length) / _params.SplitsR
             : (_params.IntervalR.Length) * (1.0 - _params.KR) / (1.0 - Math.Pow(_params.KR, _params.SplitsR));
 
-        double hz = _params.KZ == 1 ? (_params.IntervalZ.Length) / _params.SplitsZ
+        double hz = _params.KZ == 1.0
+            ? (_params.IntervalZ.Length) / _params.SplitsZ
             : (_params.IntervalZ.Length) * (1.0 - _params.KZ) / (1.0 - Math.Pow(_params.KZ, _params.SplitsZ));
 
         for (int i = 0; i < _params.SplitsR + 1; i++)
@@ -66,8 +68,8 @@ public class MeshBuilder : IMeshBuilder
                 nodes[3] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 2;
 
                 double avgZ = (_points[nodes[0]].Z + _points[nodes[2]].Z) / 2.0;
-                
-                _elements[ielem++] = new FiniteElement(nodes, avgZ >= -_params.H1 ? 0 : 1);
+
+                _elements[ielem++] = new(nodes, avgZ >= -_params.H1 ? 0 : 1);
             }
         }
 
@@ -76,7 +78,7 @@ public class MeshBuilder : IMeshBuilder
 
     public double[] CreateMaterials()
     {
-        _materials = new double[2] { _params.Sigma1, _params.Sigma2 };
+        _materials = new[] { _params.Sigma1, _params.Sigma2 };
 
         return _materials;
     }

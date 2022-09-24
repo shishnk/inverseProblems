@@ -1,9 +1,10 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class MeshGenerator
 {
-    private IMeshBuilder _builder;
+    private readonly IMeshBuilder _builder;
     public MeshGenerator(IMeshBuilder builder) => _builder = builder;
+
     public Mesh CreateMesh() => new Mesh(
         _builder.CreatePoints(),
         _builder.CreateElements(),
