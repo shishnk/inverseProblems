@@ -2,7 +2,9 @@
 
 public interface IBasis
 {
-    public double Psi(int ifunc, Point2D point);
+    int Size { get; }
 
-    public double DPsi(int iFunc, int iVar, Point2D point);
+    double Psi(int ifunc, Point2D point);
+
+    double DPsi(int iFunc, int iVar, Point2D point);
 }
