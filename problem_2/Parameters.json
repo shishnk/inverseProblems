@@ -1,0 +1,31 @@
+{
+  "Interval R": {
+    "Left border": 1.0,
+    "Right border": 20.0
+  },
+  "Splits R": 3,
+  "Coefficient R": 1.0,
+
+  "Layers": [
+    {
+      "Height": 5.0,
+      "Sigma": 0.1
+    },
+    {
+      "Height": 15.0,
+      "Sigma": 0.01
+    }
+  ],
+
+  // Разбиения для каждого слоя
+  "Splits Z": [ 5, 5 ],
+
+  // Коэффициенты разрядки для каждого слоя
+  "Coefficients Z": [ 1.0, 1.0 ],
+
+  // Граница и тип краевого на ней
+  "Left border": 1,
+  "Right border": 1,
+  "Top border": 1,
+  "Bottom border": 1
+}
