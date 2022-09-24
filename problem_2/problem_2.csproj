@@ -9,14 +9,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2" />
 		<PackageReference Include="System.Runtime.Experimental" Version="6.0.2" />
-        <Using Include="Newtonsoft.Json"/>
-        <Using Include="System.ComponentModel.DataAnnotations"/>
-        <Using Include="System.Collections.Immutable"/>
-        <Using Include="System.Collections"/>
-        <Using Include="System.Diagnostics"/>
-        <Using Include="problem_2"/>
+        <Using Include="Newtonsoft.Json" />
+        <Using Include="Newtonsoft.Json.Linq" />
+        <Using Include="System.ComponentModel.DataAnnotations" />
+        <Using Include="System.Collections.Immutable" />
+        <Using Include="System.Collections" />
+        <Using Include="System.Diagnostics" />
+        <Using Include="problem_2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Parameters.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
