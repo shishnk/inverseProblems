@@ -2,6 +2,8 @@
 
 public readonly record struct LinearBasis : IBasis
 {
+    public int Size => 4;
+
     public double Psi(int ifunc, Point2D point) =>
         ifunc switch
         {
@@ -12,10 +14,10 @@ public readonly record struct LinearBasis : IBasis
             _ => throw new IndexOutOfRangeException()
         };
 
-    public double DPsi(int iFunc, int iVar, Point2D point) =>
-        iVar switch
+    public double DPsi(int ifunc, int ivar, Point2D point) =>
+        ivar switch
         {
-            0 => iFunc switch
+            0 => ifunc switch
             {
                 0 => point.Z - 1,
                 1 => 1 - point.Z,
@@ -23,7 +25,7 @@ public readonly record struct LinearBasis : IBasis
                 3 => point.Z,
                 _ => throw new IndexOutOfRangeException()
             },
-            1 => iFunc switch
+            1 => ifunc switch
             {
                 0 => point.R - 1,
                 1 => -point.R,
