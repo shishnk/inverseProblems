@@ -17,3 +17,15 @@ public readonly record struct Interval
     [JsonConstructor] public Interval(double leftBorder, double rightBorder) =>
         (LeftBorder, RightBorder) = (leftBorder, rightBorder);
 }
+
+public readonly record struct Rectangle
+{
+    [JsonProperty("Left bottom")] public Point2D LeftBottom { get; init; }
+    [JsonProperty("Right top")] public Point2D RightTop { get; init; }
+
+    [JsonIgnore] public double Square => (RightTop.R - LeftBottom.R) * (RightTop.Z - LeftBottom.Z);
+
+    [JsonConstructor]
+    public Rectangle(Point2D leftBottom, Point2D rightTop) =>
+        (LeftBottom, RightTop) = (leftBottom, rightTop);
+}
