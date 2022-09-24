@@ -1,4 +1,6 @@
-﻿namespace problem_2;
+﻿using problem_2.Source;
+
+namespace problem_2;
 
 public class Integration
 {
@@ -30,16 +32,26 @@ public class Integration
     {
         var leftBottom = rectangle.LeftBottom;
         var rightTop = rectangle.RightTop;
+
+        double hr = rightTop.R - leftBottom.R;
+        double hz = rightTop.Z - leftBottom.Z;
+
         double sum = 0.0;
 
         foreach (var iquad in _quadatures)
         {
             double qi = iquad.Weight;
+            double pi = (leftBottom.R + rightTop.R + iquad.Node * hr) / 2.0;
 
             foreach (var jquad in _quadatures)
             {
                 double qj = jquad.Weight;
+                double pj = (leftBottom.Z + rightTop.Z + jquad.Node * hz) / 2.0;
+
+                sum += qi * qj * f(pi, pj);
             }
         }
+
+        return sum * hr * hz / 4.0;
     }
 }
