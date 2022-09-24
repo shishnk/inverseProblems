@@ -30,3 +30,12 @@ public readonly record struct Rectangle
     public Rectangle(Point2D leftBottom, Point2D rightTop) =>
         (LeftBottom, RightTop) = (leftBottom, rightTop);
 }
+
+public readonly record struct Layer
+{
+    [JsonProperty("Height")] public double Height { get; init; }
+    [JsonProperty("Sigma")] public double Sigma { get; init; }
+
+    public Layer(double height, double sigma) =>
+        (Height, Sigma) = (height, sigma);
+}
