@@ -6,26 +6,24 @@ public class MeshBuilder : IMeshBuilder
     private Point2D[] _points = default!;
     private FiniteElement[] _elements = default!;
     private double[] _materials = default!;
+    private DirichletBoundary[] _dirichlet = default!;
+    private NeumannBoundary[] _neumann = default!;
 
     public MeshBuilder(MeshParameters parameters) => _params = parameters;
 
     public Point2D[] CreatePoints()
     {
         double[] pointsR = new double[_params.SplitsR + 1];
-        double[] pointsZ = new double[_params.SplitsZ + 1];
+        double[] pointsZ = new double[_params.SplitsZ.Sum() + 1];
 
         _points = new Point2D[pointsR.Length * pointsZ.Length];
 
+        // Точки по оси R
         double rPoint = _params.IntervalR.LeftBorder;
-        double zPoint = _params.IntervalZ.LeftBorder;
 
         double hr = _params.KR == 1.0
             ? (_params.IntervalR.Length) / _params.SplitsR
             : (_params.IntervalR.Length) * (1.0 - _params.KR) / (1.0 - Math.Pow(_params.KR, _params.SplitsR));
-
-        double hz = _params.KZ == 1.0
-            ? (_params.IntervalZ.Length) / _params.SplitsZ
-            : (_params.IntervalZ.Length) * (1.0 - _params.KZ) / (1.0 - Math.Pow(_params.KZ, _params.SplitsZ));
 
         for (int i = 0; i < _params.SplitsR + 1; i++)
         {
@@ -34,11 +32,28 @@ public class MeshBuilder : IMeshBuilder
             hr *= _params.KR;
         }
 
-        for (int i = 0; i < _params.SplitsZ + 1; i++)
+        // Точки по оси Z
+        double zPoint = 0.0;
+
+        for (int ilayer = 0, ipoint = 0; ilayer < _params.SplitsZ.Count; ilayer++)
         {
-            pointsZ[i] = zPoint;
-            zPoint -= hz;
-            hz *= _params.KZ;
+            var layer = _params.Layers[ilayer];
+            var splitsZ = _params.SplitsZ[ilayer];
+            var kz = _params.KZ[ilayer];
+
+            double hz = kz == 1.0
+                ? layer.Height / splitsZ :
+                (layer.Height) * (1.0 - kz) / (1.0 - Math.Pow(kz, splitsZ));
+
+            for (int i = 0; i < splitsZ + 1; i++)
+            {
+                pointsZ[ipoint++] = zPoint;
+                zPoint += hz;
+                hz *= kz;
+            }
+
+            zPoint = layer.Height;
+            ipoint--;
         }
 
         for (int i = 0, ipoint = 0; i < pointsZ.Length; i++)
@@ -54,32 +69,137 @@ public class MeshBuilder : IMeshBuilder
 
     public FiniteElement[] CreateElements()
     {
-        _elements = new FiniteElement[_params.SplitsR * _params.SplitsZ];
+        _elements = new FiniteElement[_params.SplitsR * _params.SplitsZ.Sum()];
 
         int[] nodes = new int[4];
 
-        for (int i = 0, ielem = 0; i < _params.SplitsZ; i++)
-        {
-            for (int j = 0; j < _params.SplitsR; j++)
-            {
-                nodes[0] = j + i * (_params.SplitsR + 1);
-                nodes[1] = j + i * (_params.SplitsR + 1) + 1;
-                nodes[2] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 1;
-                nodes[3] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 2;
+        //for (int i = 0, ielem = 0; i < _params.SplitsZ; i++)
+        //{
+        //    for (int j = 0; j < _params.SplitsR; j++)
+        //    {
+        //        nodes[0] = j + i * (_params.SplitsR + 1);
+        //        nodes[1] = j + i * (_params.SplitsR + 1) + 1;
+        //        nodes[2] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 1;
+        //        nodes[3] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 2;
 
-                double avgZ = (_points[nodes[0]].Z + _points[nodes[2]].Z) / 2.0;
+        //        double avgZ = (_points[nodes[0]].Z + _points[nodes[2]].Z) / 2.0;
 
-                _elements[ielem++] = new(nodes, avgZ >= -_params.H1 ? 0 : 1);
-            }
-        }
+        //        _elements[ielem++] = new(nodes, avgZ >= -_params.H1 ? 0 : 1);
+        //    }
+        //}
 
         return _elements;
     }
 
     public double[] CreateMaterials()
     {
-        _materials = new[] { _params.Sigma1, _params.Sigma2 };
+        _materials = new double[_params.Layers.Count];
+
+        for (int i = 0; i < _materials.Length; i++)
+        {
+            _materials[i] = _params.Layers[i].Sigma;
+        }
 
         return _materials;
+    }
+
+    public DirichletBoundary[] CreateDirichlet()
+    {
+        //HashSet<int> dirichletNodes = new();
+
+        //if (_params.LeftBorder == 1)
+        //{
+        //    for (int i = 0; i < _params.SplitsZ + 1; i++)
+        //    {
+        //        dirichletNodes.Add(i * _params.SplitsR);
+        //    }
+        //}
+
+        //if (_params.RightBorder == 1)
+        //{
+        //    for (int i = 0; i < _params.SplitsZ + 1; i++)
+        //    {
+        //        dirichletNodes.Add(_params.SplitsR + i * _params.SplitsR);
+        //    }
+        //}
+
+        //if (_params.BottomBorder == 1)
+        //{
+        //    for (int i = 0; i < _params.SplitsR + 1; i++)
+        //    {
+        //        dirichletNodes.Add(i);
+        //    }
+        //}
+
+        //if (_params.TopBorder == 1)
+        //{
+        //    int startNode = (_params.SplitsR + 1) * (_params.SplitsZ + 1) - (_params.SplitsR + 1);
+
+        //    for (int i = 0; i < _params.SplitsR + 1; i++)
+        //    {
+        //        dirichletNodes.Add(startNode + i);
+        //    }
+        //}
+
+        //var enumerable = dirichletNodes.OrderBy(x => x);
+
+        //_dirichlet = new DirichletBoundary[dirichletNodes.Count];
+
+        //for (int i = 0; i < _dirichlet.Length; i++)
+        //{
+        //    _dirichlet[i] = new(enumerable.ElementAt(i), 0.0);
+        //}
+
+        return _dirichlet;
+    }
+
+    public NeumannBoundary[] CreateNeumann()
+    {
+        int neumannCount = 0;
+
+        //if (_params.LeftBorder == 2) neumannCount++;
+        //if (_params.RightBorder == 2) neumannCount++;
+        //if (_params.TopBorder == 2) neumannCount++;
+        //if (_params.BottomBorder == 2) neumannCount++;
+
+        //_neumann = new NeumannBoundary[neumannCount];
+
+        //neumannCount = 0;
+
+        //if (_params.LeftBorder == 2)
+        //{
+        //    for (int i = 0; i < _params.SplitsZ; i++)
+        //    {
+        //        _neumann[neumannCount++] = new(i * _params.SplitsR, 0, 2, 0);
+        //    }
+        //}
+
+        //if (_params.RightBorder == 2)
+        //{
+        //    for (int i = 0; i < _params.SplitsZ; i++)
+        //    {
+        //        _neumann[neumannCount++] = new(_params.SplitsR - 1 + i * _params.SplitsR, 1, 3, 0);
+        //    }
+        //}
+
+        //if (_params.BottomBorder == 2)
+        //{
+        //    for (int i = 0; i < _params.SplitsR; i++)
+        //    {
+        //        _neumann[neumannCount++] = new(0, 0, 1, 0);
+        //    }
+        //}
+
+        //if (_params.TopBorder == 2)
+        //{
+        //    int startElem = _params.SplitsZ * _params.SplitsR;
+
+        //    for (int i = 0; i < _params.SplitsR; i++)
+        //    {
+        //        _neumann[neumannCount++] = new(startElem + i, 2, 3, 0);
+        //    }
+        //}
+
+        return _neumann;
     }
 }
