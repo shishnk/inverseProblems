@@ -110,50 +110,50 @@ public class MeshBuilder : IMeshBuilder
 
     public DirichletBoundary[] CreateDirichlet()
     {
-        //HashSet<int> dirichletNodes = new();
+        HashSet<int> dirichletNodes = new();
 
-        //if (_params.LeftBorder == 1)
-        //{
-        //    for (int i = 0; i < _params.SplitsZ + 1; i++)
-        //    {
-        //        dirichletNodes.Add(i * _params.SplitsR);
-        //    }
-        //}
+        if (_params.BottomBorder == 1)
+        {
+            int startNode = (_params.SplitsR + 1) * _params.SplitsZ.Sum();
 
-        //if (_params.RightBorder == 1)
-        //{
-        //    for (int i = 0; i < _params.SplitsZ + 1; i++)
-        //    {
-        //        dirichletNodes.Add(_params.SplitsR + i * _params.SplitsR);
-        //    }
-        //}
+            for (int i = 0; i < _params.SplitsR + 1; i++)
+            {
+                dirichletNodes.Add(startNode + i);
+            }
+        }
 
-        //if (_params.BottomBorder == 1)
-        //{
-        //    for (int i = 0; i < _params.SplitsR + 1; i++)
-        //    {
-        //        dirichletNodes.Add(i);
-        //    }
-        //}
+        if (_params.TopBorder == 1)
+        {
+            for (int i = 0; i < _params.SplitsR + 1; i++)
+            {
+                dirichletNodes.Add(i);
+            }
+        }
 
-        //if (_params.TopBorder == 1)
-        //{
-        //    int startNode = (_params.SplitsR + 1) * (_params.SplitsZ + 1) - (_params.SplitsR + 1);
+        if (_params.LeftBorder == 1)
+        {
+            for (int i = 0; i < _params.SplitsZ.Sum() + 1; i++)
+            {
+                dirichletNodes.Add(i * _params.SplitsR + i);
+            }
+        }
 
-        //    for (int i = 0; i < _params.SplitsR + 1; i++)
-        //    {
-        //        dirichletNodes.Add(startNode + i);
-        //    }
-        //}
+        if (_params.RightBorder == 1)
+        {
+            for (int i = 0; i < _params.SplitsZ.Sum() + 1; i++)
+            {
+                dirichletNodes.Add(_params.SplitsR + i * (_params.SplitsR + 1));
+            }
+        }
 
-        //var enumerable = dirichletNodes.OrderBy(x => x);
+        var enumerable = dirichletNodes.OrderBy(x => x);
 
-        //_dirichlet = new DirichletBoundary[dirichletNodes.Count];
+        _dirichlet = new DirichletBoundary[dirichletNodes.Count];
 
-        //for (int i = 0; i < _dirichlet.Length; i++)
-        //{
-        //    _dirichlet[i] = new(enumerable.ElementAt(i), 0.0);
-        //}
+        for (int i = 0; i < _dirichlet.Length; i++)
+        {
+            _dirichlet[i] = new(enumerable.ElementAt(i), 0.0);
+        }
 
         return _dirichlet;
     }
@@ -162,48 +162,48 @@ public class MeshBuilder : IMeshBuilder
     {
         int neumannCount = 0;
 
-        //if (_params.LeftBorder == 2) neumannCount++;
-        //if (_params.RightBorder == 2) neumannCount++;
-        //if (_params.TopBorder == 2) neumannCount++;
-        //if (_params.BottomBorder == 2) neumannCount++;
+        if (_params.LeftBorder == 2) neumannCount += _params.SplitsZ.Sum();
+        if (_params.RightBorder == 2) neumannCount += _params.SplitsZ.Sum();
+        if (_params.TopBorder == 2) neumannCount += _params.SplitsR;
+        if (_params.BottomBorder == 2) neumannCount += _params.SplitsR;
 
-        //_neumann = new NeumannBoundary[neumannCount];
+        _neumann = new NeumannBoundary[neumannCount];
 
-        //neumannCount = 0;
+        neumannCount = 0;
 
-        //if (_params.LeftBorder == 2)
-        //{
-        //    for (int i = 0; i < _params.SplitsZ; i++)
-        //    {
-        //        _neumann[neumannCount++] = new(i * _params.SplitsR, 0, 2, 0);
-        //    }
-        //}
+        if (_params.BottomBorder == 2)
+        {
+            int startElem = (_params.SplitsZ.Sum() - 1) * _params.SplitsR;
 
-        //if (_params.RightBorder == 2)
-        //{
-        //    for (int i = 0; i < _params.SplitsZ; i++)
-        //    {
-        //        _neumann[neumannCount++] = new(_params.SplitsR - 1 + i * _params.SplitsR, 1, 3, 0);
-        //    }
-        //}
+            for (int i = 0; i < _params.SplitsR; i++)
+            {
+                _neumann[neumannCount++] = new(startElem + i, 2, 3, 0);
+            }
+        }
 
-        //if (_params.BottomBorder == 2)
-        //{
-        //    for (int i = 0; i < _params.SplitsR; i++)
-        //    {
-        //        _neumann[neumannCount++] = new(0, 0, 1, 0);
-        //    }
-        //}
+        if (_params.TopBorder == 2)
+        {
+            for (int i = 0; i < _params.SplitsR; i++)
+            {
+                _neumann[neumannCount++] = new(i, 0, 1, 0);
+            }
+        }
 
-        //if (_params.TopBorder == 2)
-        //{
-        //    int startElem = _params.SplitsZ * _params.SplitsR;
+        if (_params.LeftBorder == 2)
+        {
+            for (int i = 0; i < _params.SplitsZ.Sum(); i++)
+            {
+                _neumann[neumannCount++] = new(i * _params.SplitsR, 0, 2, 0);
+            }
+        }
 
-        //    for (int i = 0; i < _params.SplitsR; i++)
-        //    {
-        //        _neumann[neumannCount++] = new(startElem + i, 2, 3, 0);
-        //    }
-        //}
+        if (_params.RightBorder == 2)
+        {
+            for (int i = 0; i < _params.SplitsZ.Sum(); i++)
+            {
+                _neumann[neumannCount++] = new(_params.SplitsR - 1 + i * _params.SplitsR, 1, 3, 0);
+            }
+        }
 
         return _neumann;
     }

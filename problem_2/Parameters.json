@@ -24,8 +24,8 @@
   "Coefficients Z": [ 1.0, 1.0 ],
 
   // Граница и тип краевого на ней
-  "Left border": 1,
+  "Left border": 2,
   "Right border": 1,
-  "Top border": 1,
+  "Top border": 2,
   "Bottom border": 1
 }
