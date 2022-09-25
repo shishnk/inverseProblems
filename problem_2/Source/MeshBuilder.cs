@@ -73,20 +73,25 @@ public class MeshBuilder : IMeshBuilder
 
         int[] nodes = new int[4];
 
-        //for (int i = 0, ielem = 0; i < _params.SplitsZ; i++)
-        //{
-        //    for (int j = 0; j < _params.SplitsR; j++)
-        //    {
-        //        nodes[0] = j + i * (_params.SplitsR + 1);
-        //        nodes[1] = j + i * (_params.SplitsR + 1) + 1;
-        //        nodes[2] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 1;
-        //        nodes[3] = j + i * (_params.SplitsR + 1) + _params.SplitsR + 2;
+        int layerStartIdx = 0;
 
-        //        double avgZ = (_points[nodes[0]].Z + _points[nodes[2]].Z) / 2.0;
+        for (int ilayer = 0, ielem = 0; ilayer < _params.Layers.Count; ilayer++)
+        {
+            for (int i = 0; i < _params.SplitsZ[ilayer]; i++)
+            {
+                for (int j = 0; j < _params.SplitsR; j++)
+                {
+                    nodes[0] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i;
+                    nodes[1] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + 1;
+                    nodes[2] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 1;
+                    nodes[3] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 2;
+                        
+                    _elements[ielem++] = new(nodes, ilayer);
+                }
+            }
 
-        //        _elements[ielem++] = new(nodes, avgZ >= -_params.H1 ? 0 : 1);
-        //    }
-        //}
+            layerStartIdx += _params.SplitsZ[ilayer] * (_params.SplitsR + 1);
+        }
 
         return _elements;
     }
