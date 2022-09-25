@@ -4,7 +4,7 @@ public interface IBasis
 {
     int Size { get; }
 
-    double Phi(double point);
+    double Phi(int ifunc, double point);
 
     double Psi(int ifunc, Point2D point);
 
