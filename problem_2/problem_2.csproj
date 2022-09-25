@@ -21,6 +21,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="Mesh.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
       <None Update="Parameters.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
