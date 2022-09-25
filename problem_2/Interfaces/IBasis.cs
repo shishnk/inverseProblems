@@ -1,6 +1,4 @@
-﻿using problem_2.Source;
-
-namespace problem_2;
+﻿namespace problem_2.Interfaces;
 
 public interface IBasis
 {

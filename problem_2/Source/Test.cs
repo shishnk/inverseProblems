@@ -1,4 +1,6 @@
-﻿namespace problem_2.Source;
+﻿using problem_2.Interfaces;
+
+namespace problem_2.Source;
 
 public class Test1 : ITest
 {
