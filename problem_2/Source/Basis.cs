@@ -4,14 +4,6 @@ public readonly record struct LinearBasis : IBasis
 {
     public int Size => 4;
 
-    public double Phi(int ifunc, double point) =>
-        ifunc switch
-        {
-            0 => 1.0 - point,
-            1 => point,
-            _ => throw new ArgumentOutOfRangeException(nameof(ifunc), $"Not expected ifunc value: {ifunc}")
-        };
-
     public double Psi(int ifunc, Point2D point) =>
         ifunc switch
         {
