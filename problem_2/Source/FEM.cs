@@ -13,12 +13,12 @@ public class FEMBuilder
         private Matrix<double> _stiffnesMatrix = default!;
         private Matrix<double> _massMatrix = default!;
         private Vector<double> _localB = default!;
-        private double[] _solution = default!;
         private readonly SparseMatrix _globalMatrix = default!;
         private readonly Vector<double> _globalVector = default!;
         private IterativeSolver _solver = default!;
         private Integration _gauss;
         private ITest _test = default!;
+        public ImmutableArray<double> Solution = default!;
 
         public FEM(Mesh mesh, IBasis basis, IterativeSolver solver, ITest test)
         {
@@ -31,6 +31,12 @@ public class FEMBuilder
             _stiffnesMatrix = new(_basis.Size);
             _massMatrix = new(_basis.Size);
             _localB = new(_basis.Size);
+
+            PortraitBuilder.Build(_mesh, out int[] ig, out int[] jg);
+            _globalMatrix = new(ig.Length - 1, jg.Length);
+            _globalMatrix.Ig = ig;
+            _globalMatrix.Jg = jg;
+            _globalVector = new(ig.Length - 1);
 
             _gauss = new(Quadratures.GaussOrder3());
         }
@@ -258,7 +264,46 @@ public class FEMBuilder
 
         private void AddDirichlet()
         {
+            for (int i = 0; i < _mesh.Dirichlet.Length; i++)
+            {
+                int node = _mesh.Dirichlet[i].Node;
+                double value = _mesh.Dirichlet[i].Value;
 
+                var point = _mesh.Points[node];
+
+                _globalMatrix.Di[node] = 1.0;
+
+                if (_test is not null)
+                {
+                    _globalVector[node] = _test.V(point.R, point.Z);
+                }
+                else
+                {
+                    _globalVector[node] = value;
+                }
+
+                int i0 = _globalMatrix.Ig[node];
+                int i1 = _globalMatrix.Ig[node + 1];
+
+                for (int k = i0; k < i1; k++)
+                {
+                    _globalMatrix.GGl[k] = 0.0;
+                }
+
+                for (int k = node + 1; k < _mesh.Points.Length; k++)
+                {
+                    i0 = _globalMatrix.Ig[k];
+                    i1 = _globalMatrix.Ig[k + 1];
+
+                    for (int j = i0; j < i1; j++)
+                    {
+                        if (_globalMatrix.Jg[j] == node)
+                        {
+                            _globalMatrix.GGu[j] = 0.0;
+                        }
+                    }
+                }
+            }
         }
 
         private void AddNeumman()
@@ -266,7 +311,28 @@ public class FEMBuilder
 
         }
 
-        public void Solve()
+        private double Error()
+        {
+            if (_test is not null)
+            {
+                double[] exact = new double[Solution.Length];
+
+                for (int i = 0; i < _mesh.Points.Length; i++)
+                {
+                    var point = _mesh.Points[i];
+
+                    exact[i] = _test.V(point.R, point.Z);
+
+                    exact[i] -= Solution[i];
+                }
+
+                return exact.Norm();
+            }
+
+            return 0.0;
+        }
+
+        public double Solve()
         {
             AssemblySLAE();
             AddNeumman();
@@ -274,7 +340,9 @@ public class FEMBuilder
 
             _solver.SetSLAE(_globalMatrix, _globalVector);
             _solver.Compute();
-            _solution = _solver.Solution!.Value.ToArray();
+            Solution = _solver.Solution!.Value;
+
+            return Error();
         }
     }
     #endregion
