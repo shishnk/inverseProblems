@@ -1,6 +1,6 @@
 ﻿namespace problem_2.Source;
 
-public class PortraitBuilder
+public static class PortraitBuilder
 {
     public static void Build(Mesh mesh, out int[] ig, out int[] jg)
     {
@@ -8,15 +8,13 @@ public class PortraitBuilder
 
         for (int i = 0; i < mesh.Points.Length; i++)
         {
-            connectivityList.Add(new HashSet<int>());
+            connectivityList.Add(new());
         }
 
         int localSize = mesh.Elements[0].Nodes.Length;
 
-        for (int ielem = 0; ielem < mesh.Elements.Length; ielem++)
+        foreach (var element in mesh.Elements)
         {
-            var element = mesh.Elements[ielem];
-
             for (int i = 0; i < localSize - 1; i++)
             {
                 int nodeToInsert = element.Nodes[i];
@@ -30,7 +28,7 @@ public class PortraitBuilder
             }
         }
 
-        var orderedList = connectivityList.Select(list => list.OrderBy(val => val));
+        var orderedList = connectivityList.Select(list => list.OrderBy(val => val)).ToList();
 
         ig = new int[connectivityList.Count + 1];
 
@@ -46,7 +44,7 @@ public class PortraitBuilder
 
         for (int i = 1, j = 0; i < connectivityList.Count; i++)
         {
-            foreach (var it in orderedList.ElementAt(i))
+            foreach (var it in orderedList[i])
             {
                 jg[j++] = it;
             }

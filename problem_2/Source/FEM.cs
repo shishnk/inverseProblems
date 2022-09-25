@@ -3,22 +3,24 @@
 public class FEMBuilder
 {
     #region Класс МКЭ
+
     public class FEM
     {
-        private Mesh _mesh = default!;
-        private IBasis _basis = default!;
-        private Matrix<double>[] _precalcLocalGR = default!;
-        private Matrix<double>[] _precalcLocalGZ = default!;
-        private Matrix<double>[] _precalcLocalM = default!;
-        private Matrix<double> _stiffnesMatrix = default!;
-        private Matrix<double> _massMatrix = default!;
-        private Vector<double> _localB = default!;
-        private readonly SparseMatrix _globalMatrix = default!;
-        private readonly Vector<double> _globalVector = default!;
-        private IterativeSolver _solver = default!;
-        private Integration _gauss;
-        private ITest _test = default!;
-        public ImmutableArray<double> Solution = default!;
+        private readonly Mesh _mesh;
+        private readonly IBasis _basis;
+        private Matrix<double>[]? _precalcLocalGR;
+        private Matrix<double>[]? _precalcLocalGZ;
+        private Matrix<double>[]? _precalcLocalM;
+        private readonly Matrix<double> _stiffnessMatrix;
+        private readonly Matrix<double> _massMatrix;
+        private readonly Vector<double> _localB;
+        private readonly SparseMatrix _globalMatrix;
+        private readonly Vector<double> _globalVector;
+        private readonly IterativeSolver _solver;
+        private readonly Integration _gauss;
+        private readonly ITest _test;
+
+        public ImmutableArray<double>? Solution => _solver.Solution;
 
         public FEM(Mesh mesh, IBasis basis, IterativeSolver solver, ITest test)
         {
@@ -28,14 +30,16 @@ public class FEMBuilder
             _basis = basis;
             _solver = solver;
 
-            _stiffnesMatrix = new(_basis.Size);
+            _stiffnessMatrix = new(_basis.Size);
             _massMatrix = new(_basis.Size);
             _localB = new(_basis.Size);
 
             PortraitBuilder.Build(_mesh, out int[] ig, out int[] jg);
-            _globalMatrix = new(ig.Length - 1, jg.Length);
-            _globalMatrix.Ig = ig;
-            _globalMatrix.Jg = jg;
+            _globalMatrix = new(ig.Length - 1, jg.Length)
+            {
+                Ig = ig,
+                Jg = jg
+            };
             _globalVector = new(ig.Length - 1);
 
             _gauss = new(Quadratures.GaussOrder3());
@@ -57,23 +61,26 @@ public class FEMBuilder
                 _precalcLocalGZ = new Matrix<double>[] { new(_basis.Size), new(_basis.Size) };
                 _precalcLocalM = new Matrix<double>[] { new(_basis.Size), new(_basis.Size) };
 
-                Rectangle rect = new(new (0, 0), new (1, 1));
-
-                Func<double, double, double> function;
+                Rectangle rect = new(new(0, 0), new(1, 1));
 
                 for (int i = 0; i < _basis.Size; i++)
                 {
                     for (int j = 0; j <= i; j++)
                     {
+                        Func<double, double, double> function;
                         for (int k = 0; k < 2; k++)
                         {
-                            function = (double ksi, double etta) => {
+                            var i1 = i;
+                            var j1 = j;
+                            var k1 = k;
+                            function = (ksi, etta) =>
+                            {
                                 Point2D point = new(ksi, etta);
 
-                                double dphii_r = _basis.DPsi(i, 0, point);
-                                double dphij_r = _basis.DPsi(j, 0, point);
+                                double dphiiR = _basis.DPsi(i1, 0, point);
+                                double dphijR = _basis.DPsi(j1, 0, point);
 
-                                return k == 0 ? dphii_r * dphij_r : dphii_r * dphij_r * ksi;
+                                return k1 == 0 ? dphiiR * dphijR : dphiiR * dphijR * ksi;
                             };
 
                             _precalcLocalGR[k][i, j] = _precalcLocalGR[k][j, i] = _gauss.Integrate2D(function, rect);
@@ -81,13 +88,17 @@ public class FEMBuilder
 
                         for (int k = 0; k < 2; k++)
                         {
-                            function = (double ksi, double etta) => {
+                            var k1 = k;
+                            var j1 = j;
+                            var i1 = i;
+                            function = (ksi, etta) =>
+                            {
                                 Point2D point = new(ksi, etta);
 
-                                double dphii_z = _basis.DPsi(i, 1, point);
-                                double dphij_z = _basis.DPsi(j, 1, point);
+                                double dphiiZ = _basis.DPsi(i1, 1, point);
+                                double dphijZ = _basis.DPsi(j1, 1, point);
 
-                                return k == 0 ? dphii_z * dphij_z : dphii_z * dphij_z * ksi;
+                                return k1 == 0 ? dphiiZ * dphijZ : dphiiZ * dphijZ * ksi;
                             };
 
                             _precalcLocalGZ[k][i, j] = _precalcLocalGZ[k][j, i] = _gauss.Integrate2D(function, rect);
@@ -95,13 +106,17 @@ public class FEMBuilder
 
                         for (int k = 0; k < 2; k++)
                         {
-                            function = (double ksi, double etta) => {
+                            var k1 = k;
+                            var i1 = i;
+                            var j1 = j;
+                            function = (ksi, etta) =>
+                            {
                                 Point2D point = new(ksi, etta);
 
-                                double phi_i = _basis.Psi(i, point);
-                                double phi_j = _basis.Psi(j, point);
+                                double phiI = _basis.Psi(i1, point);
+                                double phiJ = _basis.Psi(j1, point);
 
-                                return k == 0 ? phi_i * phi_j : phi_i * phi_j * ksi;
+                                return k1 == 0 ? phiI * phiJ : phiI * phiJ * ksi;
                             };
 
                             _precalcLocalM[k][i, j] = _precalcLocalM[k][j, i] = _gauss.Integrate2D(function, rect);
@@ -110,6 +125,7 @@ public class FEMBuilder
                 }
 
                 #region Просто вывод, чтобы проверить, что верно посчиталось
+
                 //for (int k = 0; k < 2; k++)
                 //{
                 //    for (int i = 0; i < _precalcLocalGR[k].Rows; i++)
@@ -160,6 +176,7 @@ public class FEMBuilder
                 //    Console.WriteLine();
                 //    Console.WriteLine();
                 //}
+
                 #endregion
             }
 
@@ -167,11 +184,11 @@ public class FEMBuilder
             {
                 for (int j = 0; j <= i; j++)
                 {
-                    _stiffnesMatrix[i, j] = _stiffnesMatrix[j, i] =
+                    _stiffnessMatrix[i, j] = _stiffnessMatrix[j, i] =
                         hz / hr * bPoint.R * _precalcLocalGR[0][i, j] +
-                        hz                 * _precalcLocalGR[1][i, j] +
-                        hr / hz * bPoint.R * _precalcLocalGZ[0][i, j] +
-                        hr * hr / hz       * _precalcLocalGZ[1][i, j];
+                        hz * _precalcLocalGR[1][i, j] +
+                        hr / hz * bPoint.R * _precalcLocalGZ![0][i, j] +
+                        hr * hr / hz * _precalcLocalGZ[1][i, j];
                 }
             }
 
@@ -179,9 +196,9 @@ public class FEMBuilder
             {
                 for (int j = 0; j <= i; j++)
                 {
-                    _massMatrix[i, j] = _massMatrix[j, i] = 
-                        hr * bPoint.R * hz * _precalcLocalM[0][i, j] +
-                        hr * hr * hz       * _precalcLocalM[1][i, j];
+                    _massMatrix[i, j] = _massMatrix[j, i] =
+                        hr * bPoint.R * hz * _precalcLocalM![0][i, j] +
+                        hr * hr * hz * _precalcLocalM[1][i, j];
                 }
             }
         }
@@ -256,7 +273,7 @@ public class FEMBuilder
 
                     for (int j = 0; j < _basis.Size; j++)
                     {
-                        AddToGlobal(elem.Nodes[i], elem.Nodes[j], coef * _stiffnesMatrix[i, j]);
+                        AddToGlobal(elem.Nodes[i], elem.Nodes[j], coef * _stiffnessMatrix[i, j]);
                     }
                 }
             }
@@ -264,11 +281,8 @@ public class FEMBuilder
 
         private void AddDirichlet()
         {
-            for (int i = 0; i < _mesh.Dirichlet.Length; i++)
+            foreach (var (node, value) in _mesh.Dirichlet)
             {
-                int node = _mesh.Dirichlet[i].Node;
-                double value = _mesh.Dirichlet[i].Value;
-
                 var point = _mesh.Points[node];
 
                 _globalMatrix.Di[node] = 1.0;
@@ -308,14 +322,13 @@ public class FEMBuilder
 
         private void AddNeumman()
         {
-
         }
 
         private double Error()
         {
             if (_test is not null)
             {
-                double[] exact = new double[Solution.Length];
+                double[] exact = new double[_solver.Solution!.Value.Length];
 
                 for (int i = 0; i < _mesh.Points.Length; i++)
                 {
@@ -323,7 +336,7 @@ public class FEMBuilder
 
                     exact[i] = _test.V(point.R, point.Z);
 
-                    exact[i] -= Solution[i];
+                    exact[i] -= _solver.Solution.Value[i];
                 }
 
                 return exact.Norm();
@@ -340,14 +353,15 @@ public class FEMBuilder
 
             _solver.SetSLAE(_globalMatrix, _globalVector);
             _solver.Compute();
-            Solution = _solver.Solution!.Value;
 
             return Error();
         }
     }
+
     #endregion
 
-    #region Сожержимое класса FEMBuilder
+    #region Содержимое класса FEMBuilder
+
     private Mesh _mesh = default!;
     private IBasis _basis = default!;
     private IterativeSolver _solver = default!;
@@ -377,6 +391,8 @@ public class FEMBuilder
         return this;
     }
 
-    public FEM Build() => new FEM(_mesh, _basis, _solver, _test);
+    public static implicit operator FEM(FEMBuilder fB)
+        => new(fB._mesh, fB._basis, fB._solver, fB._test);
+
     #endregion
 }

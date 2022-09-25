@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class QuadratureNode<T> where T : notnull
 {
@@ -43,14 +43,16 @@ public static class Quadratures
     {
         const int n = 4;
 
-        double[] points = {
+        double[] points =
+        {
             Math.Sqrt(3.0 / 7.0 - 2.0 / 7.0 * Math.Sqrt(6.0 / 5.0)),
             -Math.Sqrt(3.0 / 7.0 - 2.0 / 7.0 * Math.Sqrt(6.0 / 5.0)),
             Math.Sqrt(3.0 / 7.0 + 2.0 / 7.0 * Math.Sqrt(6.0 / 5.0)),
             -Math.Sqrt(3.0 / 7.0 + 2.0 / 7.0 * Math.Sqrt(6.0 / 5.0))
         };
 
-        double[] weights = {
+        double[] weights =
+        {
             18.0 + Math.Sqrt(30.0) / 36.0,
             18.0 + Math.Sqrt(30.0) / 36.0,
             18.0 - Math.Sqrt(30.0) / 36.0,
@@ -66,17 +68,23 @@ public static class Quadratures
     public static IEnumerable<QuadratureNode<double>> GaussOrder5()
     {
         const int n = 5;
-        double[] points = { 0.0,
-                            1.0 / 3.0 * Math.Sqrt(5 - 2 * Math.Sqrt(10.0 / 7.0)),
-                            -1.0 / 3.0 * Math.Sqrt(5 - 2 * Math.Sqrt(10.0 / 7.0)),
-                            1.0 / 3.0 * Math.Sqrt(5 + 2 * Math.Sqrt(10.0 / 7.0)),
-                            -1.0 / 3.0 * Math.Sqrt(5 + 2 * Math.Sqrt(10.0 / 7.0))};
+        double[] points =
+        {
+            0.0,
+            1.0 / 3.0 * Math.Sqrt(5 - 2 * Math.Sqrt(10.0 / 7.0)),
+            -1.0 / 3.0 * Math.Sqrt(5 - 2 * Math.Sqrt(10.0 / 7.0)),
+            1.0 / 3.0 * Math.Sqrt(5 + 2 * Math.Sqrt(10.0 / 7.0)),
+            -1.0 / 3.0 * Math.Sqrt(5 + 2 * Math.Sqrt(10.0 / 7.0))
+        };
 
-        double[] weights = { 128.0 / 225.0,
-                            (322.0 + 13.0 * Math.Sqrt(70.0)) / 900.0,
-                            (322.0 + 13.0 * Math.Sqrt(70.0)) / 900.0,
-                            (322.0 - 13.0 * Math.Sqrt(70.0)) / 900.0,
-                            (322.0 - 13.0 * Math.Sqrt(70.0)) / 900.0 };
+        double[] weights =
+        {
+            128.0 / 225.0,
+            (322.0 + 13.0 * Math.Sqrt(70.0)) / 900.0,
+            (322.0 + 13.0 * Math.Sqrt(70.0)) / 900.0,
+            (322.0 - 13.0 * Math.Sqrt(70.0)) / 900.0,
+            (322.0 - 13.0 * Math.Sqrt(70.0)) / 900.0
+        };
 
         for (int i = 0; i < n; i++)
         {

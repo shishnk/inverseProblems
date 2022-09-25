@@ -18,7 +18,6 @@ public abstract class IterativeSolver
     public ImmutableArray<double>? Solution => _solution?.ToImmutableArray();
 
 
-
     protected IterativeSolver(int maxIters, double eps)
         => (MaxIters, Eps) = (maxIters, eps);
 
@@ -28,11 +27,12 @@ public abstract class IterativeSolver
     public abstract void Compute();
 }
 
-
 public class LOS : IterativeSolver
 {
-    public LOS(int maxIters, double eps) : base(maxIters, eps) { }
-    
+    public LOS(int maxIters, double eps) : base(maxIters, eps)
+    {
+    }
+
     public override void Compute()
     {
         try

@@ -5,12 +5,12 @@ public class Mesh
     public ImmutableArray<Point2D> Points { get; }
     public ImmutableArray<FiniteElement> Elements { get; }
     [JsonIgnore] public ImmutableArray<double> AreaProperty { get; }
-    [JsonIgnore] public ImmutableArray<DirichletBoundary> Dirichlet { get; } 
-    [JsonIgnore] public ImmutableArray<NeumannBoundary> Neumann { get; } 
+    [JsonIgnore] public ImmutableArray<DirichletBoundary> Dirichlet { get; }
+    [JsonIgnore] public ImmutableArray<NeumannBoundary> Neumann { get; }
 
     public Mesh(
-        Point2D[] points, 
-        FiniteElement[] elements, 
+        Point2D[] points,
+        FiniteElement[] elements,
         double[] properties,
         DirichletBoundary[] dirichlet,
         NeumannBoundary[] neumann

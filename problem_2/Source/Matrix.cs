@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class Matrix<T> where T : INumber<T>
 {
@@ -16,14 +16,14 @@ public class Matrix<T> where T : INumber<T>
     {
         Rows = size;
         Columns = size;
-        _storage = new T[size].Select(_ => new T[size]).ToArray(); ;
+        _storage = new T[size].Select(_ => new T[size]).ToArray();
     }
 
     public Matrix(int rows, int columns)
     {
         Rows = rows;
         Columns = columns;
-        _storage = new T[rows].Select(_ => new T[columns]).ToArray(); ;
+        _storage = new T[rows].Select(_ => new T[columns]).ToArray();
     }
 
     public static Matrix<T> Copy(Matrix<T> otherMatrix)
@@ -44,12 +44,13 @@ public class Matrix<T> where T : INumber<T>
 
 public class SparseMatrix
 {
-    public int[] Ig { get; set; }
-    public int[] Jg { get; set; }
-    public double[] Di { get; set; }
-    public double[] GGl { get; set; }
-    public double[] GGu { get; set; }
+    public int[] Ig { get; init; }
+    public int[] Jg { get; init; }
+    public double[] Di { get; }
+    public double[] GGl { get; }
+    public double[] GGu { get; }
     public int Size { get; }
+
     public SparseMatrix(int size, int sizeOffDiag)
     {
         Size = size;
@@ -77,6 +78,7 @@ public class SparseMatrix
 
         return product;
     }
+
     public void PrintDense(string path)
     {
         double[,] a = new double[Size, Size];

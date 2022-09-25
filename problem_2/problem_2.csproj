@@ -18,6 +18,7 @@
         <Using Include="System.Collections" />
         <Using Include="System.Diagnostics" />
         <Using Include="problem_2" />
+        <Using Include="problem_2.Source" />
     </ItemGroup>
 
     <ItemGroup>

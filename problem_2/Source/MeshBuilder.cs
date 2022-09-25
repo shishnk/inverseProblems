@@ -42,8 +42,8 @@ public class MeshBuilder : IMeshBuilder
             var kz = _params.KZ[ilayer];
 
             double hz = kz == 1.0
-                ? layer.Height / splitsZ :
-                (layer.Height) * (1.0 - kz) / (1.0 - Math.Pow(kz, splitsZ));
+                ? layer.Height / splitsZ
+                : (layer.Height) * (1.0 - kz) / (1.0 - Math.Pow(kz, splitsZ));
 
             for (int i = 0; i < splitsZ + 1; i++)
             {
@@ -85,7 +85,7 @@ public class MeshBuilder : IMeshBuilder
                     nodes[1] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + 1;
                     nodes[2] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 1;
                     nodes[3] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 2;
-                        
+
                     _elements[ielem++] = new(nodes, ilayer);
                 }
             }
@@ -146,13 +146,13 @@ public class MeshBuilder : IMeshBuilder
             }
         }
 
-        var enumerable = dirichletNodes.OrderBy(x => x);
+        var array = dirichletNodes.OrderBy(x => x).ToArray();
 
         _dirichlet = new DirichletBoundary[dirichletNodes.Count];
 
         for (int i = 0; i < _dirichlet.Length; i++)
         {
-            _dirichlet[i] = new(enumerable.ElementAt(i), 0.0);
+            _dirichlet[i] = new(array[i], 0.0);
         }
 
         return _dirichlet;

@@ -1,90 +1,87 @@
 ﻿namespace problem_2.Source;
 
-
-public class MeshJsonConverter : JsonConverter
+public class MeshParametersJsonConverter : JsonConverter
 {
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer) { }
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
-        if (reader.TokenType == JsonToken.Null || reader.TokenType != JsonToken.StartObject) return null;
+    }
 
-        Interval intervalR;
-        int splitsR;
-        double kr;
+    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+        JsonSerializer serializer)
+    {
+        if (reader.TokenType is JsonToken.Null or not JsonToken.StartObject) return null;
+
         List<Layer> layers = new();
         List<int> splitsZ = new();
         List<double> kz = new();
-
-        byte leftBorder, rightBorder, bottomBorder, topBorder;
 
         var data = JObject.Load(reader);
 
         // Интервал по R и его разбиение
         var token = data["Interval R"];
-        intervalR = serializer.Deserialize<Interval>(token!.CreateReader());
+        var intervalR = serializer.Deserialize<Interval>(token!.CreateReader());
 
         token = data["Splits R"];
-        splitsR = Convert.ToInt32(token);
+        var splitsR = Convert.ToInt32(token);
 
         token = data["Coefficient R"];
-        kr = Convert.ToDouble(token);
+        var kr = Convert.ToDouble(token);
 
         // Слои по Z и их разбиение
         token = data["Layers"];
 
-        foreach(var child in token!)
+        foreach (var child in token!)
         {
-            layers.Add(serializer.Deserialize<Layer>(child!.CreateReader()));
+            layers.Add(serializer.Deserialize<Layer>(child.CreateReader()));
         }
 
         token = data["Splits Z"];
 
         foreach (var child in token!)
         {
-            splitsZ.Add(serializer.Deserialize<int>(child!.CreateReader()));
+            splitsZ.Add(serializer.Deserialize<int>(child.CreateReader()));
         }
 
         token = data["Coefficients Z"];
 
         foreach (var child in token!)
         {
-            kz.Add(serializer.Deserialize<double>(child!.CreateReader()));
+            kz.Add(serializer.Deserialize<double>(child.CreateReader()));
         }
 
         // Границы и типы краевых на них
-        leftBorder   = Convert.ToByte(data["Left border"]);
-        rightBorder  = Convert.ToByte(data["Right border"]);
-        bottomBorder = Convert.ToByte(data["Bottom border"]);
-        topBorder    = Convert.ToByte(data["Top border"]);
+        var leftBorder = Convert.ToByte(data["Left border"]);
+        var rightBorder = Convert.ToByte(data["Right border"]);
+        var bottomBorder = Convert.ToByte(data["Bottom border"]);
+        var topBorder = Convert.ToByte(data["Top border"]);
 
-
-        return new MeshParameters(intervalR, splitsR, kr, layers, splitsZ, kz, leftBorder, rightBorder, bottomBorder, topBorder);
+        return new MeshParameters(intervalR, splitsR, kr, layers, splitsZ, kz, leftBorder, rightBorder, bottomBorder,
+            topBorder);
     }
 
     public override bool CanConvert(Type objectType)
         => objectType == typeof(MeshParameters);
 }
 
-[JsonConverter(typeof(MeshJsonConverter))]
+[JsonConverter(typeof(MeshParametersJsonConverter))]
 public class MeshParameters
 {
-    public Interval IntervalR { get; init; }
-    public int SplitsR { get; init; }
-    public double KR { get; init; }
-    public ImmutableList<Layer> Layers { get; init; } = default!;
-    public ImmutableList<int> SplitsZ { get; init; } = default!;
-    public ImmutableList<double> KZ { get; init; } = default!;
+    public Interval IntervalR { get; }
+    public int SplitsR { get; }
+    public double KR { get; }
+    public ImmutableList<Layer> Layers { get; }
+    public ImmutableList<int> SplitsZ { get; }
+    public ImmutableList<double> KZ { get; }
 
-    public byte LeftBorder { get;  init; }
-    public byte RightBorder { get;  init; }
-    public byte BottomBorder { get;  init; }
-    public byte TopBorder { get;  init; }
+    public byte LeftBorder { get; }
+    public byte RightBorder { get; }
+    public byte BottomBorder { get; }
+    public byte TopBorder { get; }
 
     public MeshParameters(
         Interval intervalR, int splitsR, double kr,
-        List<Layer> layers, List<int> splitsZ, List<double> kz, 
-        byte leftBorder, byte rightBorder, 
+        List<Layer> layers, List<int> splitsZ, List<double> kz,
+        byte leftBorder, byte rightBorder,
         byte bottomBorder, byte topBorder)
     {
         IntervalR = intervalR;
@@ -109,7 +106,8 @@ public class MeshParameters
             }
 
             using var sr = new StreamReader(jsonPath);
-            return JsonConvert.DeserializeObject<MeshParameters>(sr.ReadToEnd())!;
+            return JsonConvert.DeserializeObject<MeshParameters>(sr.ReadToEnd())
+                   ?? throw new NullReferenceException("Fill in the parameter data correctly");
         }
         catch (Exception ex)
         {

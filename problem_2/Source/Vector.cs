@@ -1,4 +1,4 @@
-﻿namespace problem_2;
+﻿namespace problem_2.Source;
 
 public class Vector<T> : IEnumerable<T> where T : INumber<T>
 {
