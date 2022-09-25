@@ -3,7 +3,6 @@
 public class FEMBuilder
 {
     #region Класс МКЭ
-
     public class FEM
     {
         private readonly Mesh _mesh;
@@ -18,13 +17,18 @@ public class FEMBuilder
         private readonly Vector<double> _globalVector;
         private readonly IterativeSolver _solver;
         private readonly Integration _gauss;
-        private readonly ITest _test;
+        private readonly Func<double, double, double> _source = default!;
+        private readonly Func<double, double, double>? _field;
 
         public ImmutableArray<double>? Solution => _solver.Solution;
 
-        public FEM(Mesh mesh, IBasis basis, IterativeSolver solver, ITest test)
+        public FEM(
+            Mesh mesh, IBasis basis, IterativeSolver solver, 
+            Func<double, double, double> source,
+            Func<double, double, double> field)
         {
-            _test = test;
+            _source = source;
+            _field = field;
 
             _mesh = mesh;
             _basis = basis;
@@ -123,61 +127,6 @@ public class FEMBuilder
                         }
                     }
                 }
-
-                #region Просто вывод, чтобы проверить, что верно посчиталось
-
-                //for (int k = 0; k < 2; k++)
-                //{
-                //    for (int i = 0; i < _precalcLocalGR[k].Rows; i++)
-                //    {
-                //        for (int j = 0; j < _precalcLocalGR[k].Rows; j++)
-                //        {
-                //            Console.Write(_precalcLocalGR[k][i, j] + "   ");
-                //        }
-                //        Console.WriteLine();
-                //    }
-                //    Console.WriteLine();
-                //    Console.WriteLine();
-                //}
-                //Console.WriteLine();
-                //Console.WriteLine();
-                //Console.WriteLine();
-                //Console.WriteLine();
-
-
-                //for (int k = 0; k < 2; k++)
-                //{
-                //    for (int i = 0; i < _precalcLocalGZ[k].Rows; i++)
-                //    {
-                //        for (int j = 0; j < _precalcLocalGZ[k].Rows; j++)
-                //        {
-                //            Console.Write(_precalcLocalGZ[k][i, j] + "   ");
-                //        }
-                //        Console.WriteLine();
-                //    }
-                //    Console.WriteLine();
-                //    Console.WriteLine();
-                //}
-                //Console.WriteLine();
-                //Console.WriteLine();
-                //Console.WriteLine();
-                //Console.WriteLine();
-
-                //for (int k = 0; k < 2; k++)
-                //{
-                //    for (int i = 0; i < _precalcLocalM[k].Rows; i++)
-                //    {
-                //        for (int j = 0; j < _precalcLocalM[k].Rows; j++)
-                //        {
-                //            Console.Write(_precalcLocalM[k][i, j] + "   ");
-                //        }
-                //        Console.WriteLine();
-                //    }
-                //    Console.WriteLine();
-                //    Console.WriteLine();
-                //}
-
-                #endregion
             }
 
             for (int i = 0; i < _basis.Size; i++)
@@ -213,7 +162,7 @@ public class FEMBuilder
             {
                 var point = _mesh.Points[elem.Nodes[i]];
 
-                f[i] = _test.J(point.R, point.Z);
+                f[i] = _source(point.R, point.Z);
             }
 
             for (int i = 0; i < _basis.Size; i++)
@@ -287,9 +236,9 @@ public class FEMBuilder
 
                 _globalMatrix.Di[node] = 1.0;
 
-                if (_test is not null)
+                if (_field is not null)
                 {
-                    _globalVector[node] = _test.V(point.R, point.Z);
+                    _globalVector[node] = _field(point.R, point.Z);
                 }
                 else
                 {
@@ -320,13 +269,9 @@ public class FEMBuilder
             }
         }
 
-        private void AddNeumman()
-        {
-        }
-
         private double Error()
         {
-            if (_test is not null)
+            if (_field is not null)
             {
                 double[] exact = new double[_solver.Solution!.Value.Length];
 
@@ -334,7 +279,7 @@ public class FEMBuilder
                 {
                     var point = _mesh.Points[i];
 
-                    exact[i] = _test.V(point.R, point.Z);
+                    exact[i] = _field(point.R, point.Z);
 
                     exact[i] -= _solver.Solution.Value[i];
                 }
@@ -348,7 +293,6 @@ public class FEMBuilder
         public double Solve()
         {
             AssemblySLAE();
-            AddNeumman();
             AddDirichlet();
 
             _solver.SetSLAE(_globalMatrix, _globalVector);
@@ -365,7 +309,8 @@ public class FEMBuilder
     private Mesh _mesh = default!;
     private IBasis _basis = default!;
     private IterativeSolver _solver = default!;
-    private ITest _test = default!;
+    private Func<double, double, double> _field = default!;
+    private Func<double, double, double> _source = default!;
 
     public FEMBuilder SetMesh(Mesh mesh)
     {
@@ -385,14 +330,21 @@ public class FEMBuilder
         return this;
     }
 
-    public FEMBuilder SetTest(ITest test)
+    public FEMBuilder SetTest(Func<double, double, double> source, Func<double, double, double> field)
     {
-        _test = test;
+        _source = source;
+        _field = field;
+        return this;
+    }
+
+    public FEMBuilder SetSource(Func<double, double, double> source)
+    {
+        _source = source;
         return this;
     }
 
     public static implicit operator FEM(FEMBuilder fB)
-        => new(fB._mesh, fB._basis, fB._solver, fB._test);
+        => new(fB._mesh, fB._basis, fB._solver, fB._source, fB._field);
 
     #endregion
 }
