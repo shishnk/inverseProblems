@@ -11,7 +11,7 @@ public class MeshBuilder : IMeshBuilder
 
     public MeshBuilder(MeshParameters parameters) => _params = parameters;
 
-    public Point2D[] CreatePoints()
+    public IEnumerable<Point2D> CreatePoints()
     {
         double[] pointsR = new double[_params.SplitsR + 1];
         double[] pointsZ = new double[_params.SplitsZ.Sum() + 1];
@@ -67,7 +67,7 @@ public class MeshBuilder : IMeshBuilder
         return _points;
     }
 
-    public FiniteElement[] CreateElements()
+    public IEnumerable<FiniteElement> CreateElements()
     {
         _elements = new FiniteElement[_params.SplitsR * _params.SplitsZ.Sum()];
 
@@ -96,7 +96,7 @@ public class MeshBuilder : IMeshBuilder
         return _elements;
     }
 
-    public double[] CreateMaterials()
+    public IEnumerable<double> CreateMaterials()
     {
         _materials = new double[_params.Layers.Count];
 
@@ -108,7 +108,7 @@ public class MeshBuilder : IMeshBuilder
         return _materials;
     }
 
-    public DirichletBoundary[] CreateDirichlet()
+    public IEnumerable<DirichletBoundary> CreateDirichlet()
     {
         HashSet<int> dirichletNodes = new();
 
@@ -158,7 +158,7 @@ public class MeshBuilder : IMeshBuilder
         return _dirichlet;
     }
 
-    public NeumannBoundary[] CreateNeumann()
+    public IEnumerable<NeumannBoundary> CreateNeumann()
     {
         int neumannCount = 0;
 

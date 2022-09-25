@@ -2,9 +2,9 @@
 
 public interface IMeshBuilder
 {
-    Point2D[] CreatePoints();
-    FiniteElement[] CreateElements();
-    double[] CreateMaterials();
-    DirichletBoundary[] CreateDirichlet();
-    NeumannBoundary[] CreateNeumann();
+    IEnumerable<Point2D> CreatePoints();
+    IEnumerable<FiniteElement> CreateElements();
+    IEnumerable<double> CreateMaterials();
+    IEnumerable<DirichletBoundary> CreateDirichlet();
+    IEnumerable<NeumannBoundary> CreateNeumann();
 }
