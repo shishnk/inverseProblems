@@ -9,11 +9,11 @@ public class Mesh
     [JsonIgnore] public ImmutableArray<NeumannBoundary> Neumann { get; }
 
     public Mesh(
-        Point2D[] points,
-        FiniteElement[] elements,
-        double[] properties,
-        DirichletBoundary[] dirichlet,
-        NeumannBoundary[] neumann
+        IEnumerable<Point2D> points,
+        IEnumerable<FiniteElement> elements,
+        IEnumerable<double> properties,
+        IEnumerable<DirichletBoundary> dirichlet,
+        IEnumerable<NeumannBoundary> neumann
     )
     {
         Points = points.ToImmutableArray();
