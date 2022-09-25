@@ -19,6 +19,7 @@
         <Using Include="System.Diagnostics" />
         <Using Include="problem_2" />
         <Using Include="problem_2.Source" />
+        <Using Include="problem_2.Interfaces" />
     </ItemGroup>
 
     <ItemGroup>

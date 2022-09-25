@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace problem_2;
+﻿namespace problem_2.Source;
 
 public abstract class IterativeSolver
 {

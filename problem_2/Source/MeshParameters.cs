@@ -4,6 +4,52 @@ public class MeshParametersJsonConverter : JsonConverter
 {
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
+        if (value is null)
+        {
+            writer.WriteNull();
+            return;
+        }
+
+        var meshParameters = (MeshParameters)value;
+
+        writer.WriteStartObject();
+        writer.WritePropertyName("Interval R");
+        serializer.Serialize(writer, meshParameters.IntervalR);
+
+        writer.WritePropertyName("Splits R");
+        writer.WriteValue(meshParameters.SplitsR);
+
+        writer.WritePropertyName("Coefficient R");
+        writer.WriteValue(meshParameters.KR);
+
+        writer.WriteWhitespace("\n");
+
+        writer.WritePropertyName("Layers");
+        serializer.Serialize(writer, meshParameters.Layers);
+
+        writer.WriteWhitespace("\n");
+
+        writer.WriteComment("Разбиения для каждого слоя");
+        writer.WritePropertyName("Splits Z");
+        serializer.Serialize(writer, meshParameters.SplitsZ);
+
+        writer.WriteWhitespace("\n");
+
+        writer.WriteComment("Коэффициенты разрядки для каждого слоя");
+        writer.WritePropertyName("Coefficients Z");
+        serializer.Serialize(writer, meshParameters.KZ);
+
+        writer.WriteWhitespace("\n");
+
+        writer.WriteComment("Граница и тип краевого на ней");
+        writer.WritePropertyName("Left border");
+        writer.WriteValue(meshParameters.LeftBorder);
+        writer.WritePropertyName("Right border");
+        writer.WriteValue(meshParameters.RightBorder);
+        writer.WritePropertyName("Top border");
+        writer.WriteValue(meshParameters.TopBorder);
+        writer.WritePropertyName("Bottom border");
+        writer.WriteValue(meshParameters.BottomBorder);
     }
 
     public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
