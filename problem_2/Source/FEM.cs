@@ -300,6 +300,55 @@ public class FEMBuilder
 
             return Error();
         }
+
+        private int FindElem(Point2D point)
+        {
+            for (int i = 0; i < _mesh.Elements.Length; i++)
+            {
+                var nodes = _mesh.Elements[i].Nodes;
+
+                var leftBottom = _mesh.Points[nodes[0]];
+                var rightTop = _mesh.Points[nodes[_basis.Size - 1]];
+
+                if (leftBottom.R <= point.R && point.R <= rightTop.R &&
+                    leftBottom.Z <= point.Z && point.Z <= rightTop.Z) 
+                {    
+                    return i; 
+                }
+            }
+
+            return -1;
+        }
+
+        public double ValueInPoint(Point2D point)
+        {
+            double value = 0.0;
+
+            try
+            {
+                int ielem = FindElem(point);
+
+                if (ielem == -1) throw new ArgumentOutOfRangeException(nameof(point), $"Not expected point value: {point}");
+
+                var nodes = _mesh.Elements[ielem].Nodes;
+                var leftBottom = _mesh.Points[nodes[0]];
+                var rightTop = _mesh.Points[nodes[_basis.Size - 1]];
+
+                double ksi = (point.R - leftBottom.R) / (rightTop.R - leftBottom.R);
+                double eta = (point.Z - leftBottom.Z) / (rightTop.Z - leftBottom.Z);
+
+                for (int i = 0; i < _basis.Size; i++)
+                {
+                    value += _solver.Solution!.Value[nodes[i]] * _basis.Psi(i, new(ksi, eta));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
+
+            return value;
+        }
     }
 
     #endregion
