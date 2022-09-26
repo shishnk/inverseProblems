@@ -3,8 +3,8 @@
     "Left border": 1.0,
     "Right border": 20.0
   },
-  "Splits R": 3,
-  "Coefficient R": 1.0,
+  "Splits R": 2,
+  "Coefficient R": 1,
 
   "Layers": [
     {
@@ -21,7 +21,7 @@
   "Splits Z": [ 3, 4 ],
 
   // Коэффициенты разрядки для каждого слоя
-  "Coefficients Z": [ 1.0, 1.0 ],
+  "Coefficients Z": [ 1, 1 ],
 
   // Граница и тип краевого на ней
   // Программа написана так, что 2-е краевые задаются 
