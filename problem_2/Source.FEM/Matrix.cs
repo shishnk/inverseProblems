@@ -105,4 +105,11 @@ public class SparseMatrix
             sw.WriteLine();
         }
     }
+
+    public void Clear()
+    {
+        Di.Fill(0.0);
+        GGl.Fill(0.0);
+        GGu.Fill(0.0);
+    }
 }
