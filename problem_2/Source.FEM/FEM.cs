@@ -292,6 +292,9 @@ public class FEMBuilder
 
         public double Solve()
         {
+            _globalMatrix.Clear();
+            _globalVector.Fill(0.0);
+
             AssemblySLAE();
             AddDirichlet();
 
@@ -349,6 +352,9 @@ public class FEMBuilder
 
             return value;
         }
+
+        public void UpdateMesh(double[] newSigma) =>  
+            _mesh.UpdateProperties(newSigma);
     }
 
     #endregion
