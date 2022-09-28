@@ -6,10 +6,10 @@ mesh.Save("Mesh.json");
 
 // FEM
 Func<double, double, double> field = (double r, double z) => z;
-Func<double, double, double> source = (double r, double z) => 0.0;
+Func<double, double, double> source = (double r, double z) => 1.0;
 
 FEMBuilder femBuilder = new();
-FEMBuilder.FEM fem = femBuilder.SetMesh(mesh).SetBasis(new LinearBasis()).SetSolver(new LOSLU(1000, 1e-13)).SetTest(source, field);
+FEMBuilder.FEM fem = femBuilder.SetMesh(mesh).SetBasis(new LinearBasis()).SetSolver(new LOSLU(1000, 1e-13)).SetSource(source);
 Console.WriteLine($"Residual: {fem.Solve()}"); 
 
 // Electro Exploration
@@ -17,5 +17,9 @@ ElectroParameters electroParameters = ElectroParameters.ReadJson("ElectroParamet
 ElectroExplorationBuilder explorationBuilder = new ();
 ElectroExplorationBuilder.ElectroExploration electroExploration = explorationBuilder.
                                                                   SetParameters(electroParameters).
-                                                                  SetSolver(new Gauss()).
-                                                                  SetFEM(fem);
+                                                                  SetMesh(mesh).
+                                                                  SetFEM(fem).
+                                                                  SetSolver(new Gauss());
+
+electroExploration.Solve();
+int b = 1;
