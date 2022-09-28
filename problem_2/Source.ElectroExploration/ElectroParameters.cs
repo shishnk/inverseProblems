@@ -13,6 +13,9 @@ public class ElectroParameters
     [JsonProperty("Primary sigma", Required = Required.Always)]
     public double[] PrimarySigma { get; init; } = Array.Empty<double>();
 
+    [JsonProperty("Noises", Required = Required.Always)]
+    public double[] Noises { get; init; } = Array.Empty<double>();
+
     public static ElectroParameters ReadJson(string jsonPath)
     {
         try
