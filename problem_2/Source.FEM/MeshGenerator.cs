@@ -10,7 +10,6 @@ public class MeshGenerator
         _builder.CreatePoints(),
         _builder.CreateElements(),
         _builder.CreateMaterials(),
-        _builder.CreateDirichlet(),
-        _builder.CreateNeumann()
+        _builder.CreateDirichlet()
     );
 }

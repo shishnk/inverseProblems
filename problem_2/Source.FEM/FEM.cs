@@ -25,7 +25,7 @@ public class FEMBuilder
         public FEM(
             Mesh mesh, IBasis basis, IterativeSolver solver, 
             Func<double, double, double> source,
-            Func<double, double, double> field)
+            Func<double, double, double>? field)
         {
             _source = source;
             _field = field;
@@ -57,7 +57,7 @@ public class FEMBuilder
             var ePoint = _mesh.Points[elem.Nodes[_basis.Size - 1]];
 
             double hr = ePoint.R - bPoint.R;
-            double hz = Math.Abs(ePoint.Z - bPoint.Z);
+            double hz = ePoint.Z - bPoint.Z;
 
             if (_precalcLocalGR is null)
             {
@@ -134,10 +134,10 @@ public class FEMBuilder
                 for (int j = 0; j <= i; j++)
                 {
                     _stiffnessMatrix[i, j] = _stiffnessMatrix[j, i] =
-                        hz / hr * bPoint.R * _precalcLocalGR[0][i, j] +
-                        hz * _precalcLocalGR[1][i, j] +
-                        hr / hz * bPoint.R * _precalcLocalGZ![0][i, j] +
-                        hr * hr / hz * _precalcLocalGZ[1][i, j];
+                        hz / hr * bPoint.R  * _precalcLocalGR![0][i, j] +
+                        hz                  * _precalcLocalGR![1][i, j] +
+                        hr / hz * bPoint.R  * _precalcLocalGZ![0][i, j] +
+                        hr * hr / hz        * _precalcLocalGZ![1][i, j];
                 }
             }
 
@@ -146,14 +146,16 @@ public class FEMBuilder
                 for (int j = 0; j <= i; j++)
                 {
                     _massMatrix[i, j] = _massMatrix[j, i] =
-                        hr * bPoint.R * hz * _precalcLocalM![0][i, j] +
-                        hr * hr * hz * _precalcLocalM[1][i, j];
+                        hr * bPoint.R * hz  * _precalcLocalM![0][i, j] +
+                        hr * hr * hz        * _precalcLocalM![1][i, j];
                 }
             }
         }
 
         private void BuildLocalVector(int ielem)
         {
+            _localB.Fill(0.0);
+
             var elem = _mesh.Elements[ielem];
 
             double[] f = new double[_basis.Size];
@@ -208,6 +210,9 @@ public class FEMBuilder
 
         private void AssemblySLAE()
         {
+            _globalMatrix.Clear();
+            _globalVector.Fill(0.0);
+
             for (int ielem = 0; ielem < _mesh.Elements.Length; ielem++)
             {
                 var elem = _mesh.Elements[ielem];
@@ -234,38 +239,22 @@ public class FEMBuilder
             {
                 var point = _mesh.Points[node];
 
-                _globalMatrix.Di[node] = 1.0;
+                _globalMatrix.Di[node] = 1E+32;
 
                 if (_field is not null)
                 {
-                    _globalVector[node] = _field(point.R, point.Z);
+                    _globalVector[node] = _field(point.R, point.Z) * 1E+32;
                 }
                 else
                 {
-                    _globalVector[node] = value;
+                    _globalVector[node] = value * 1E+32;
                 }
+            }
 
-                int i0 = _globalMatrix.Ig[node];
-                int i1 = _globalMatrix.Ig[node + 1];
-
-                for (int k = i0; k < i1; k++)
-                {
-                    _globalMatrix.GGl[k] = 0.0;
-                }
-
-                for (int k = node + 1; k < _mesh.Points.Length; k++)
-                {
-                    i0 = _globalMatrix.Ig[k];
-                    i1 = _globalMatrix.Ig[k + 1];
-
-                    for (int j = i0; j < i1; j++)
-                    {
-                        if (_globalMatrix.Jg[j] == node)
-                        {
-                            _globalMatrix.GGu[j] = 0.0;
-                        }
-                    }
-                }
+            if (_field is null)
+            {
+                _globalMatrix.Di[0] = 1E+32;
+                _globalVector[0] = 1E+32;
             }
         }
 
@@ -280,11 +269,16 @@ public class FEMBuilder
                     var point = _mesh.Points[i];
 
                     exact[i] = _field(point.R, point.Z);
-
-                    exact[i] -= _solver.Solution.Value[i];
                 }
 
-                return exact.Norm();
+                double exactNorm = exact.Norm();
+
+                for (int i = 0; i < _mesh.Points.Length; i++)
+                {
+                    exact[i] -= _solver.Solution!.Value[i];
+                }
+
+                return exact.Norm() / exactNorm;
             }
 
             return 0.0;
@@ -292,9 +286,6 @@ public class FEMBuilder
 
         public double Solve()
         {
-            _globalMatrix.Clear();
-            _globalVector.Fill(0.0);
-
             AssemblySLAE();
             AddDirichlet();
 
@@ -363,7 +354,7 @@ public class FEMBuilder
     private Mesh _mesh = default!;
     private IBasis _basis = default!;
     private IterativeSolver _solver = default!;
-    private Func<double, double, double> _field = default!;
+    private Func<double, double, double>? _field;
     private Func<double, double, double> _source = default!;
 
     public FEMBuilder SetMesh(Mesh mesh)
@@ -384,16 +375,10 @@ public class FEMBuilder
         return this;
     }
 
-    public FEMBuilder SetTest(Func<double, double, double> source, Func<double, double, double> field)
+    public FEMBuilder SetTest(Func<double, double, double> source, Func<double, double, double>? field = null)
     {
         _source = source;
         _field = field;
-        return this;
-    }
-
-    public FEMBuilder SetSource(Func<double, double, double> source)
-    {
-        _source = source;
         return this;
     }
 

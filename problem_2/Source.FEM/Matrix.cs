@@ -40,6 +40,37 @@ public class Matrix<T> where T : INumber<T>
 
         return newMatrix;
     }
+
+    public static IEnumerable<T> operator *(Matrix<T> matrix, T[] vector)
+    {
+        if (matrix.Columns != vector.Count())
+        {
+            throw new Exception("Numbers of columns not equal to size of vector");
+        }
+
+        var product = new Vector<T>(vector.Count());
+
+        for (int i = 0; i < matrix.Rows; i++)
+        {
+            for (int j = 0; j < matrix.Columns; j++)
+            {
+                product[i] += matrix[i, j] * vector[j];
+            }
+        }
+
+        return product;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < Rows; i++)
+        {
+            for (int j = 0; j < Columns; j++)
+            {
+                _storage[i][j] = T.Zero;
+            }
+        }
+    }
 }
 
 public class SparseMatrix

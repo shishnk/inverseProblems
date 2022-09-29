@@ -7,7 +7,6 @@ public class MeshBuilder : IMeshBuilder
     private FiniteElement[] _elements = default!;
     private double[] _materials = default!;
     private DirichletBoundary[] _dirichlet = default!;
-    private NeumannBoundary[] _neumann = default!;
 
     public MeshBuilder(MeshParameters parameters) => _params = parameters;
 
@@ -112,7 +111,7 @@ public class MeshBuilder : IMeshBuilder
     {
         HashSet<int> dirichletNodes = new();
 
-        if (_params.BottomBorder == 1)
+        if (_params.TopBorder == 1)
         {
             int startNode = (_params.SplitsR + 1) * _params.SplitsZ.Sum();
 
@@ -122,7 +121,7 @@ public class MeshBuilder : IMeshBuilder
             }
         }
 
-        if (_params.TopBorder == 1)
+        if (_params.BottomBorder == 1)
         {
             for (int i = 0; i < _params.SplitsR + 1; i++)
             {
@@ -156,55 +155,5 @@ public class MeshBuilder : IMeshBuilder
         }
 
         return _dirichlet;
-    }
-
-    public IEnumerable<NeumannBoundary> CreateNeumann()
-    {
-        int neumannCount = 0;
-
-        if (_params.LeftBorder == 2) neumannCount += _params.SplitsZ.Sum();
-        if (_params.RightBorder == 2) neumannCount += _params.SplitsZ.Sum();
-        if (_params.TopBorder == 2) neumannCount += _params.SplitsR;
-        if (_params.BottomBorder == 2) neumannCount += _params.SplitsR;
-
-        _neumann = new NeumannBoundary[neumannCount];
-
-        neumannCount = 0;
-
-        if (_params.BottomBorder == 2)
-        {
-            int startElem = (_params.SplitsZ.Sum() - 1) * _params.SplitsR;
-
-            for (int i = 0; i < _params.SplitsR; i++)
-            {
-                _neumann[neumannCount++] = new(startElem + i, 2, 3, 0);
-            }
-        }
-
-        if (_params.TopBorder == 2)
-        {
-            for (int i = 0; i < _params.SplitsR; i++)
-            {
-                _neumann[neumannCount++] = new(i, 0, 1, 0);
-            }
-        }
-
-        if (_params.LeftBorder == 2)
-        {
-            for (int i = 0; i < _params.SplitsZ.Sum(); i++)
-            {
-                _neumann[neumannCount++] = new(i * _params.SplitsR, 0, 2, 0);
-            }
-        }
-
-        if (_params.RightBorder == 2)
-        {
-            for (int i = 0; i < _params.SplitsZ.Sum(); i++)
-            {
-                _neumann[neumannCount++] = new(_params.SplitsR - 1 + i * _params.SplitsR, 1, 3, 0);
-            }
-        }
-
-        return _neumann;
     }
 }

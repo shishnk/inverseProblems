@@ -6,5 +6,4 @@ public interface IMeshBuilder
     IEnumerable<FiniteElement> CreateElements();
     IEnumerable<double> CreateMaterials();
     IEnumerable<DirichletBoundary> CreateDirichlet();
-    IEnumerable<NeumannBoundary> CreateNeumann();
 }

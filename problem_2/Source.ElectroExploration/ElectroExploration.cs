@@ -4,10 +4,10 @@ public class ElectroExplorationBuilder
 {
     #region ElectroExploration
 
-    public enum Electrod : sbyte
+    public enum Electrod
     {
-        ElectrodA = 1,
-        ElectrodB = -1
+        ElectrodA = -1,
+        ElectrodB = 1
     }
 
     public class ElectroExploration
@@ -24,10 +24,10 @@ public class ElectroExplorationBuilder
         private readonly FEMBuilder.FEM _fem;
         private double _current;
 
-        private const double _deltaSigma = 1E-2;
-        private const double _eps = 1E-7;
+        private const double _deltaSigma = 2E-3;
+        private double _alphaRegulator = 1E-12;
 
-        private double _alphaRegulator = 1E-15;
+        public ImmutableArray<double> Sigma => _sigma.ToImmutableArray();
 
         public ElectroExploration(ElectroParameters parameters, Mesh mesh, FEMBuilder.FEM fem, DirectSolver solver)
         {
@@ -45,9 +45,8 @@ public class ElectroExplorationBuilder
 
             _potentials = new(_parameters.PowerReceivers.Length);
             _currentPotentials = new(_parameters.PowerReceivers.Length);
-            _potentialsDiffs = new(_mesh.AreaProperty.Length, _parameters.PowerReceivers.Length);
+            _potentialsDiffs = new(_sigma.Length, _parameters.PowerReceivers.Length);
         }
-
 
         private double Potential(int ireciever)
         {
@@ -57,32 +56,31 @@ public class ElectroExplorationBuilder
 
             double rAM = Point2D.Distance(source.A, reciever.M);
             double rBM = Point2D.Distance(source.B, reciever.M);
-            double VrAM = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAM, _mesh.Points[^1].Z));
-            double VrBM = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBM, _mesh.Points[^1].Z));
+            double VrAM = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAM, _mesh.Points[0].Z));
+            double VrBM = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBM, _mesh.Points[0].Z));
 
             double rAN = Point2D.Distance(source.A, reciever.N);
             double rBN = Point2D.Distance(source.B, reciever.N);
-            double VrAN = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAN, _mesh.Points[^1].Z));
-            double VrBN = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBN, _mesh.Points[^1].Z));
+            double VrAN = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAN, _mesh.Points[0].Z));
+            double VrBN = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBN, _mesh.Points[0].Z));
 
-            return (VrAM + VrBM) - (VrAN - VrBN);
+            return (VrAM + VrBM) - (VrAN + VrBN);
         }
 
         private void CalcDiffs()
         {
-            double[] newSigma = new double[_sigma.Length];
-
             for (int i = 0; i < _sigma.Length; i++)
             {
                 for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
                 {
-                    Array.Copy(_sigma, newSigma, _sigma.Length);
-                    newSigma[i] += _deltaSigma;
+                    _sigma[i] += _deltaSigma;
 
-                    _fem.UpdateMesh(newSigma);
+                    _fem.UpdateMesh(_sigma);
                     _fem.Solve();
 
-                    _potentialsDiffs[i, j] = (Potential(i) - _currentPotentials[j]) / _deltaSigma;
+                    _sigma[i] -= _deltaSigma;
+
+                    _potentialsDiffs[i, j] = (Potential(j) - _currentPotentials[j]) / _deltaSigma;
                 }
             }
         }
@@ -90,6 +88,9 @@ public class ElectroExplorationBuilder
         private void AssemblySLAE()
         {
             CalcDiffs();
+
+            _matrix.Clear();
+            _vector.Fill(0.0);
 
             for (int q = 0; q < _sigma.Length; q++)
             {
@@ -104,12 +105,12 @@ public class ElectroExplorationBuilder
                         _matrix[q, s] += w * w * diffQ * diffS;
                     }
                 }
+
                 for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
                 {
-                    double diffQ = _potentialsDiffs[q, i];
                     double w = 1.0 / _potentials[i];
 
-                    _vector[q] -= w * w * diffQ * (_currentPotentials[i] - _potentials[i]);
+                    _vector[q] -= w * w * _potentialsDiffs[q, i] * (_currentPotentials[i] - _potentials[i]);
                 }
             }
         }
@@ -128,11 +129,9 @@ public class ElectroExplorationBuilder
             }
         }
 
-        private void InverseProblem()
+        private double InverseProblem()
         {
-            double[] newSigma = new double[_sigma.Length];
-
-            Array.Copy(_sigma, newSigma, _sigma.Length);
+            const double eps = 1E-7;
 
             _fem.UpdateMesh(_sigma);
             _fem.Solve();
@@ -146,8 +145,10 @@ public class ElectroExplorationBuilder
 
             int iters = 0;
 
-            while (functional >= _eps && iters < 1000)
+            while (functional >= eps && iters < 500)
             {
+                Console.WriteLine($"Iters: {iters},  Functional: {functional}, Sigmas: {_sigma[0]}, {_sigma[1]}");
+
                 iters++;
 
                 AssemblySLAE();
@@ -173,6 +174,8 @@ public class ElectroExplorationBuilder
 
                 functional = Functional(_currentPotentials.ToArray());
             }
+
+            return functional;
         }
 
         private double Functional(double[] currentPotentials)
@@ -203,7 +206,7 @@ public class ElectroExplorationBuilder
                     _vector[i] -= _alphaRegulator * (_potentials[i] - _currentPotentials[i]);
 
                     prevAlpha = _alphaRegulator;
-                    _alphaRegulator *= 2.0;
+                    _alphaRegulator *= 10.0;
                 }
 
                 _solver.SetMatrix(_matrix);
@@ -212,10 +215,11 @@ public class ElectroExplorationBuilder
             }
         }
 
-        public void Solve()
+        public double Solve()
         {
             DirectProblem();
-            InverseProblem();
+            double functional = InverseProblem();
+            return functional;
         }
 
     }

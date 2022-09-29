@@ -8,21 +8,18 @@ public class Mesh
     [JsonIgnore] private double[] _areaProperty;
     [JsonIgnore] public ImmutableArray<double> AreaProperty => _areaProperty.ToImmutableArray();
     [JsonIgnore] public ImmutableArray<DirichletBoundary> Dirichlet { get; }
-    [JsonIgnore] public ImmutableArray<NeumannBoundary> Neumann { get; }
 
     public Mesh(
         IEnumerable<Point2D> points,
         IEnumerable<FiniteElement> elements,
         IEnumerable<double> properties,
-        IEnumerable<DirichletBoundary> dirichlet,
-        IEnumerable<NeumannBoundary> neumann
+        IEnumerable<DirichletBoundary> dirichlet
     )
     {
         Points = points.ToImmutableArray();
         Elements = elements.ToImmutableArray();
         _areaProperty = properties.ToArray();
         Dirichlet = dirichlet.ToImmutableArray();
-        Neumann = neumann.ToImmutableArray();
     }
 
     public void UpdateProperties(double[] newProperties) =>

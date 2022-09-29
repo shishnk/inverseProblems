@@ -151,6 +151,8 @@ public class Gauss : DirectSolver
 
     public override void Compute()
     {
+        _solution = null;
+
         try
         {
             ArgumentNullException.ThrowIfNull(_matrix, $"{nameof(_matrix)} cannot be null, set the Matrix");
