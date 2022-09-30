@@ -30,7 +30,7 @@ using (var sw = new StreamWriter("../../../Python/function.txt"))
         double rPoint = mesh.Points[i].R;
         double value = fem.Solution!.Value[i];
 
-        sw.WriteLine($"{string.Format("{0:f14}", rPoint)}\t {string.Format("{0:f14}", value)}");
+        sw.WriteLine($"{rPoint:f14}\t {value:f14}");
     }
 }
 
@@ -42,6 +42,7 @@ ElectroExplorationBuilder explorationBuilder = new();
 ElectroExplorationBuilder.ElectroExploration electroExploration =
     explorationBuilder.SetParameters(electroParameters).SetMesh(mesh).SetFEM(fem).SetSolver(new Gauss());
 
-double functional = electroExploration.Solve();
+electroExploration.Solve();
+
 Console.WriteLine(
-    $"Sigma1: {electroExploration.Sigma[0]}, Sigma2:  {electroExploration.Sigma[1]}, Functional: {functional}");
+    $"Sigma1: {electroExploration.Sigmas[0]}, Sigma2:  {electroExploration.Sigmas[1]}, Functional: {electroExploration.Functional}");

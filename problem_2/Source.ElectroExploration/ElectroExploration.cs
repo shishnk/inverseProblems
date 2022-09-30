@@ -27,7 +27,7 @@ public class ElectroExplorationBuilder
         private const double DeltaSigma = 1E-2;
         private double _alphaRegulator = 1E-12;
 
-        public ImmutableArray<double> Sigma => _sigmas.ToImmutableArray();
+        public ImmutableArray<double> Sigmas => _sigmas.ToImmutableArray();
         public double Functional { get; private set; }
 
         public ElectroExploration(ElectroParameters parameters, Mesh mesh, FEMBuilder.FEM fem, DirectSolver solver)
