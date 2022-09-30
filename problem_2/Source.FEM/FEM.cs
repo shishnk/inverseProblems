@@ -1,8 +1,9 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public class FEMBuilder
 {
     #region Класс МКЭ
+
     public class FEM
     {
         private readonly Mesh _mesh;
@@ -17,13 +18,14 @@ public class FEMBuilder
         private readonly Vector<double> _globalVector;
         private readonly IterativeSolver _solver;
         private readonly Integration _gauss;
-        private readonly Func<double, double, double> _source = default!;
+        private readonly Func<double, double, double> _source;
         private readonly Func<double, double, double>? _field;
 
         public ImmutableArray<double>? Solution => _solver.Solution;
+        public double? Residual { get; private set; }
 
         public FEM(
-            Mesh mesh, IBasis basis, IterativeSolver solver, 
+            Mesh mesh, IBasis basis, IterativeSolver solver,
             Func<double, double, double> source,
             Func<double, double, double>? field)
         {
@@ -134,10 +136,10 @@ public class FEMBuilder
                 for (int j = 0; j <= i; j++)
                 {
                     _stiffnessMatrix[i, j] = _stiffnessMatrix[j, i] =
-                        hz / hr * bPoint.R  * _precalcLocalGR![0][i, j] +
-                        hz                  * _precalcLocalGR![1][i, j] +
-                        hr / hz * bPoint.R  * _precalcLocalGZ![0][i, j] +
-                        hr * hr / hz        * _precalcLocalGZ![1][i, j];
+                        hz / hr * bPoint.R * _precalcLocalGR![0][i, j] +
+                        hz * _precalcLocalGR![1][i, j] +
+                        hr / hz * bPoint.R * _precalcLocalGZ![0][i, j] +
+                        hr * hr / hz * _precalcLocalGZ![1][i, j];
                 }
             }
 
@@ -146,8 +148,8 @@ public class FEMBuilder
                 for (int j = 0; j <= i; j++)
                 {
                     _massMatrix[i, j] = _massMatrix[j, i] =
-                        hr * bPoint.R * hz  * _precalcLocalM![0][i, j] +
-                        hr * hr * hz        * _precalcLocalM![1][i, j];
+                        hr * bPoint.R * hz * _precalcLocalM![0][i, j] +
+                        hr * hr * hz * _precalcLocalM![1][i, j];
                 }
             }
         }
@@ -283,16 +285,16 @@ public class FEMBuilder
             return 0.0;
         }
 
-        public double Solve()
+        public void Solve()
         {
             AssemblySLAE();
 
             AddDirichlet();
 
-            _solver.SetSLAE(_globalMatrix, _globalVector);
+            _solver.SetSystem(_globalMatrix, _globalVector);
             _solver.Compute();
 
-            return Error();
+            Residual = Error();
         }
 
         private int FindElem(Point2D point)
@@ -305,9 +307,9 @@ public class FEMBuilder
                 var rightTop = _mesh.Points[nodes[_basis.Size - 1]];
 
                 if (leftBottom.R <= point.R && point.R <= rightTop.R &&
-                    leftBottom.Z <= point.Z && point.Z <= rightTop.Z) 
-                {    
-                    return i; 
+                    leftBottom.Z <= point.Z && point.Z <= rightTop.Z)
+                {
+                    return i;
                 }
             }
 
@@ -316,7 +318,7 @@ public class FEMBuilder
 
         public void UpdateMesh(double[] newSigma) => _mesh.UpdateProperties(newSigma);
 
-        public double ValueInPoint(Point2D point)
+        public double ValueAtPoint(Point2D point)
         {
             double value = 0.0;
 
@@ -324,7 +326,8 @@ public class FEMBuilder
             {
                 int ielem = FindElem(point);
 
-                if (ielem == -1) throw new ArgumentOutOfRangeException(nameof(point), $"Not expected point value: {point}");
+                if (ielem == -1)
+                    throw new ArgumentException(nameof(point), $"Not expected point value: {point}");
 
                 var nodes = _mesh.Elements[ielem].Nodes;
                 var leftBottom = _mesh.Points[nodes[0]];
@@ -345,6 +348,9 @@ public class FEMBuilder
 
             return value;
         }
+
+        public static FEMBuilder CreateBuilder()
+            => new();
     }
 
     #endregion

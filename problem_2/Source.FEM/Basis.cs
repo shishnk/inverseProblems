@@ -1,4 +1,4 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public readonly record struct LinearBasis : IBasis
 {

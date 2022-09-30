@@ -1,4 +1,4 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public readonly record struct Point2D(double R, double Z)
 {
@@ -31,11 +31,6 @@ public readonly record struct Rectangle
         (LeftBottom, RightTop) = (leftBottom, rightTop);
 }
 
-public readonly record struct Layer
-{
-    [JsonProperty("Height")] public double Height { get; init; }
-    [JsonProperty("Sigma")] public double Sigma { get; init; }
-
-    public Layer(double height, double sigma) =>
-        (Height, Sigma) = (height, sigma);
-}
+public readonly record struct Layer(
+    [property: JsonProperty("Height")] double Height,
+    [property: JsonProperty("Sigma")] double Sigma);

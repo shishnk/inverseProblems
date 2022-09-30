@@ -1,4 +1,6 @@
-﻿namespace problem_2.Interfaces;
+﻿using problem_2.Source.FEM;
+
+namespace problem_2.Interfaces;
 
 public interface IBasis
 {

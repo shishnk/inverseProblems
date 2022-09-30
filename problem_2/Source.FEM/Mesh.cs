@@ -1,4 +1,4 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public class Mesh
 {
@@ -22,9 +22,9 @@ public class Mesh
         Dirichlet = dirichlet.ToImmutableArray();
     }
 
-    public void UpdateProperties(double[] newProperties) =>
-        _areaProperty = newProperties;
-    
+    public void UpdateProperties(double[] newProperties)
+        => _areaProperty = newProperties;
+
 
     public void Save(string path)
     {

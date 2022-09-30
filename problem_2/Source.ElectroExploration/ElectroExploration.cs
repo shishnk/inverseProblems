@@ -4,7 +4,7 @@ public class ElectroExplorationBuilder
 {
     #region ElectroExploration
 
-    public enum Electrod
+    private enum ElectrodType
     {
         ElectrodA = -1,
         ElectrodB = 1
@@ -12,19 +12,19 @@ public class ElectroExplorationBuilder
 
     public class ElectroExploration
     {
-        private ElectroParameters _parameters;
-        private DirectSolver _solver;
-        private Vector<double> _potentials;
-        private Vector<double> _currentPotentials;
-        private Matrix<double> _potentialsDiffs;
-        private Matrix<double> _matrix = default!;
-        private Vector<double> _vector = default!;
-        private double[] _sigma;
-        private Mesh _mesh;
+        private readonly ElectroParameters _parameters;
+        private readonly DirectSolver _solver;
+        private readonly Vector<double> _potentials;
+        private readonly Vector<double> _currentPotentials;
+        private readonly Matrix<double> _potentialsDiffs;
+        private readonly Matrix<double> _matrix;
+        private readonly Vector<double> _vector;
+        private readonly double[] _sigma;
+        private readonly Mesh _mesh;
         private readonly FEMBuilder.FEM _fem;
-        private double _current;
+        private readonly double _current;
 
-        private const double _deltaSigma = 1E-2;
+        private const double DeltaSigma = 1E-2;
         private double _alphaRegulator = 1E-12;
 
         public ImmutableArray<double> Sigma => _sigma.ToImmutableArray();
@@ -38,54 +38,54 @@ public class ElectroExplorationBuilder
             _fem = fem;
             _mesh = mesh;
 
-            _sigma = _parameters.PrimarySigma;
+            _sigma = _parameters.PrimarySigma!;
 
             _matrix = new(_sigma.Length);
             _vector = new(_sigma.Length);
 
-            _potentials = new(_parameters.PowerReceivers.Length);
+            _potentials = new(_parameters.PowerReceivers!.Length);
             _currentPotentials = new(_parameters.PowerReceivers.Length);
             _potentialsDiffs = new(_sigma.Length, _parameters.PowerReceivers.Length);
         }
 
         private double Potential(int ireciever)
         {
-            var source = _parameters.PowerSources[0];
+            var source = _parameters.PowerSources![0];
 
-            var reciever = _parameters.PowerReceivers[ireciever];
+            var receiver = _parameters.PowerReceivers![ireciever];
 
-            double rAM = Point2D.Distance(source.A, reciever.M);
-            double rBM = Point2D.Distance(source.B, reciever.M);
-            double VrAM = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAM, _mesh.Points[0].Z));
-            double VrBM = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBM, _mesh.Points[0].Z));
+            double rAM = Point2D.Distance(source.A, receiver.M);
+            double rBM = Point2D.Distance(source.B, receiver.M);
+            double VrAM = (int)ElectrodType.ElectrodA * _current * _fem.ValueAtPoint(new(rAM, _mesh.Points[0].Z));
+            double VrBM = (int)ElectrodType.ElectrodB * _current * _fem.ValueAtPoint(new(rBM, _mesh.Points[0].Z));
 
-            double rAN = Point2D.Distance(source.A, reciever.N);
-            double rBN = Point2D.Distance(source.B, reciever.N);
-            double VrAN = (int)Electrod.ElectrodA * _current * _fem.ValueInPoint(new(rAN, _mesh.Points[0].Z));
-            double VrBN = (int)Electrod.ElectrodB * _current * _fem.ValueInPoint(new(rBN, _mesh.Points[0].Z));
+            double rAN = Point2D.Distance(source.A, receiver.N);
+            double rBN = Point2D.Distance(source.B, receiver.N);
+            double VrAN = (int)ElectrodType.ElectrodA * _current * _fem.ValueAtPoint(new(rAN, _mesh.Points[0].Z));
+            double VrBN = (int)ElectrodType.ElectrodB * _current * _fem.ValueAtPoint(new(rBN, _mesh.Points[0].Z));
 
-            return (VrAM + VrBM) - (VrAN + VrBN);
+            return VrAM + VrBM - (VrAN + VrBN);
         }
 
         private void CalcDiffs()
         {
             for (int i = 0; i < _sigma.Length; i++)
             {
-                for (int j = 0; j < _parameters.PowerReceivers.Length; j++)
+                for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
                 {
-                    _sigma[i] += _deltaSigma;
+                    _sigma[i] += DeltaSigma;
 
                     _fem.UpdateMesh(_sigma);
                     _fem.Solve();
 
-                    _sigma[i] -= _deltaSigma;
+                    _sigma[i] -= DeltaSigma;
 
-                    _potentialsDiffs[i, j] = (Potential(j) - _currentPotentials[j]) / _deltaSigma;
+                    _potentialsDiffs[i, j] = (Potential(j) - _currentPotentials[j]) / DeltaSigma;
                 }
             }
         }
 
-        private void AssemblySLAE()
+        private void AssemblySystem()
         {
             CalcDiffs();
 
@@ -96,7 +96,7 @@ public class ElectroExplorationBuilder
             {
                 for (int s = 0; s < _sigma.Length; s++)
                 {
-                    for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
+                    for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                     {
                         double diffQ = _potentialsDiffs[q, i];
                         double diffS = _potentialsDiffs[s, i];
@@ -106,7 +106,7 @@ public class ElectroExplorationBuilder
                     }
                 }
 
-                for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
+                for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                 {
                     double w = 1.0 / _potentials[i];
 
@@ -117,7 +117,7 @@ public class ElectroExplorationBuilder
 
         private void DirectProblem()
         {
-            for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
+            for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
             {
                 _potentials[i] = Potential(i);
             }
@@ -125,7 +125,7 @@ public class ElectroExplorationBuilder
             // Добавляем шумы
             for (int i = 0; i < _potentials.Length; i++)
             {
-                _potentials[i] += _parameters.Noises[i] * _potentials[i];
+                _potentials[i] += _parameters.Noises![i] * _potentials[i];
             }
         }
 
@@ -151,7 +151,7 @@ public class ElectroExplorationBuilder
 
                 iters++;
 
-                AssemblySLAE();
+                AssemblySystem();
 
                 _solver.SetMatrix(_matrix);
                 _solver.SetVector(_vector);
@@ -182,7 +182,7 @@ public class ElectroExplorationBuilder
         {
             double functional = 0.0;
 
-            for (int i = 0; i < _parameters.PowerReceivers.Length; i++)
+            for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
             {
                 double error = 1.0 / _potentials[i] * (_potentials[i] - currentPotentials[i]);
                 functional += error * error;
@@ -221,11 +221,12 @@ public class ElectroExplorationBuilder
             double functional = InverseProblem();
             return functional;
         }
-
     }
+
     #endregion
 
     #region ElectroExplorationBuilder
+
     private ElectroParameters _parameters = default!;
     private DirectSolver _solver = default!;
     private FEMBuilder.FEM _fem = default!;
@@ -236,16 +237,19 @@ public class ElectroExplorationBuilder
         _parameters = parameters;
         return this;
     }
+
     public ElectroExplorationBuilder SetSolver(DirectSolver solver)
     {
         _solver = solver;
         return this;
     }
+
     public ElectroExplorationBuilder SetMesh(Mesh mesh)
     {
         _mesh = mesh;
         return this;
     }
+
     public ElectroExplorationBuilder SetFEM(FEMBuilder.FEM fem)
     {
         _fem = fem;
@@ -254,6 +258,6 @@ public class ElectroExplorationBuilder
 
     public static implicit operator ElectroExploration(ElectroExplorationBuilder builder)
         => new(builder._parameters, builder._mesh, builder._fem, builder._solver);
+
     #endregion
 }
-

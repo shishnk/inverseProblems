@@ -22,13 +22,14 @@
         <Using Include="problem_2.Source" />
         <Using Include="problem_2.Interfaces" />
         <Using Include="problem_2.Source.ElectroExploration" />
+        <Using Include="problem_2.Source.FEM" />
     </ItemGroup>
 
     <ItemGroup>
       <None Update="ElectroParameters.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="MeshParameters.json">
+      <None Update="MeshParameters.jsonc">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Parameters.json">

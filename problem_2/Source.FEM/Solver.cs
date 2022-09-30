@@ -1,4 +1,4 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public abstract class IterativeSolver
 {
@@ -8,18 +8,14 @@ public abstract class IterativeSolver
     protected Vector<double>? _solution;
 
     public int MaxIters { get; }
-
     public double Eps { get; }
-
     public TimeSpan? RunningTime => _runningTime;
-
     public ImmutableArray<double>? Solution => _solution?.ToImmutableArray();
-
-
+    
     protected IterativeSolver(int maxIters, double eps)
         => (MaxIters, Eps) = (maxIters, eps);
 
-    public void SetSLAE(SparseMatrix matrix, Vector<double> vector)
+    public void SetSystem(SparseMatrix matrix, Vector<double> vector)
         => (_matrix, _vector) = (matrix, vector);
 
     public abstract void Compute();
@@ -119,6 +115,7 @@ public abstract class DirectSolver
     protected Vector<double>? _solution;
     protected Vector<double> _vector = default!;
     protected Matrix<double> _matrix = default!;
+    
     public ImmutableArray<double>? Solution => _solution?.ToImmutableArray();
 
     public void SetVector(Vector<double> vector)

@@ -1,8 +1,8 @@
-﻿namespace problem_2.Source;
+﻿namespace problem_2.Source.FEM;
 
 public class Matrix<T> where T : INumber<T>
 {
-    private readonly T[][] _storage;
+    private T[][] _storage;
     public int Rows { get; }
     public int Columns { get; }
 
@@ -43,12 +43,12 @@ public class Matrix<T> where T : INumber<T>
 
     public static IEnumerable<T> operator *(Matrix<T> matrix, T[] vector)
     {
-        if (matrix.Columns != vector.Count())
+        if (matrix.Columns != vector.Length)
         {
             throw new Exception("Numbers of columns not equal to size of vector");
         }
 
-        var product = new Vector<T>(vector.Count());
+        var product = new Vector<T>(vector.Length);
 
         for (int i = 0; i < matrix.Rows; i++)
         {
@@ -62,15 +62,7 @@ public class Matrix<T> where T : INumber<T>
     }
 
     public void Clear()
-    {
-        for (int i = 0; i < Rows; i++)
-        {
-            for (int j = 0; j < Columns; j++)
-            {
-                _storage[i][j] = T.Zero;
-            }
-        }
-    }
+        => _storage = _storage.Select(row => row.Select(_ => T.Zero).ToArray()).ToArray();
 }
 
 public class SparseMatrix
