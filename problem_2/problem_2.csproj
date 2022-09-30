@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2" />
+		<PackageReference Include="System.Runtime.Experimental" Version="6.0.2" />
+        <Using Include="Newtonsoft.Json" />
+        <Using Include="Newtonsoft.Json.Linq" />
+        <Using Include="System.Linq" />
+        <Using Include="System.ComponentModel.DataAnnotations" />
+        <Using Include="System.Collections.Immutable" />
+        <Using Include="System.Collections" />
+        <Using Include="System.Diagnostics" />
+        <Using Include="problem_2" />
+        <Using Include="problem_2.Source" />
+        <Using Include="problem_2.Interfaces" />
+        <Using Include="problem_2.Source.ElectroExploration" />
+        <Using Include="problem_2.Source.FEM" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="ElectroParameters.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="MeshParameters.jsonc">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Parameters.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="CSV" />
+      <Folder Include="Report" />
+    </ItemGroup>
+
+</Project>
