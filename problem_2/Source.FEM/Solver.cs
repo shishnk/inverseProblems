@@ -250,9 +250,9 @@ public class LOSLU : IterativeSolver
             double[] ggunew = new double[_matrix.GGu.Length];
             double[] dinew = new double[_matrix.Di.Length];
 
-            _matrix.GGl.Copy(gglnew);
-            _matrix.GGu.Copy(ggunew);
-            _matrix.Di.Copy(dinew);
+            _matrix.GGl.CopyTo(gglnew);
+            _matrix.GGu.CopyTo(ggunew);
+            _matrix.Di.CopyTo(dinew);
 
             Stopwatch sw = Stopwatch.StartNew();
 

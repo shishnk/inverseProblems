@@ -73,8 +73,7 @@ public class Vector<T> : IEnumerable<T> where T : INumber<T>
     public static Vector<T> Copy(Vector<T> otherVector)
     {
         Vector<T> newVector = new(otherVector.Length);
-
-        Array.Copy(otherVector._storage, newVector._storage, otherVector.Length);
+        otherVector._storage.CopyTo(newVector._storage);
 
         return newVector;
     }
