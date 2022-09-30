@@ -37,4 +37,9 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="CSV" />
+      <Folder Include="Report" />
+    </ItemGroup>
+
 </Project>

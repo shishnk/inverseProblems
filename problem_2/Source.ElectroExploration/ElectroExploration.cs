@@ -147,7 +147,20 @@ public class ElectroExplorationBuilder
 
             while (functional >= eps && iters < 500)
             {
-                Console.WriteLine($"Iters: {iters},  Functional: {functional}, Sigmas: {_sigma[0]}, {_sigma[1]}");
+                // for report
+                var sw = new StreamWriter("../../../CSV/1.csv", true);
+                using (sw)
+                {
+                    if (iters == 0)
+                    {
+                        sw.WriteLine($"Iter,Functional,sigma1,sigma2");
+                    }
+
+                    sw.WriteLine($"{iters},{functional},{_sigma[0]},{_sigma[1]}");
+                }
+
+
+                Console.WriteLine($"Iter: {iters},  Functional: {functional}, Sigmas: {_sigma[0]}, {_sigma[1]}");
 
                 iters++;
 
