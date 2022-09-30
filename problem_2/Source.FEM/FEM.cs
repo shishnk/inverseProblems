@@ -51,6 +51,17 @@ public class FEMBuilder
             _gauss = new(Quadratures.GaussOrder3());
         }
 
+        public void Solve()
+        {
+            AssemblySystem();
+            AccountingDirichletBoundary();
+
+            _solver.SetSystem(_globalMatrix, _globalVector);
+            _solver.Compute();
+
+            Residual = Error();
+        }
+
         private void BuildLocalMatrices(int ielem)
         {
             var elem = _mesh.Elements[ielem];
@@ -178,7 +189,7 @@ public class FEMBuilder
             }
         }
 
-        private void AddToGlobal(int i, int j, double value)
+        private void AddToGlobalMatrix(int i, int j, double value)
         {
             if (i == j)
             {
@@ -210,7 +221,7 @@ public class FEMBuilder
             }
         }
 
-        private void AssemblySLAE()
+        private void AssemblySystem()
         {
             _globalMatrix.Clear();
             _globalVector.Fill(0.0);
@@ -229,13 +240,13 @@ public class FEMBuilder
 
                     for (int j = 0; j < _basis.Size; j++)
                     {
-                        AddToGlobal(elem.Nodes[i], elem.Nodes[j], coef * _stiffnessMatrix[i, j]);
+                        AddToGlobalMatrix(elem.Nodes[i], elem.Nodes[j], coef * _stiffnessMatrix[i, j]);
                     }
                 }
             }
         }
 
-        private void AddDirichlet()
+        private void AccountingDirichletBoundary()
         {
             foreach (var (node, value) in _mesh.Dirichlet)
             {
@@ -283,18 +294,6 @@ public class FEMBuilder
             }
 
             return 0.0;
-        }
-
-        public void Solve()
-        {
-            AssemblySLAE();
-
-            AddDirichlet();
-
-            _solver.SetSystem(_globalMatrix, _globalVector);
-            _solver.Compute();
-
-            Residual = Error();
         }
 
         private int FindElem(Point2D point)
