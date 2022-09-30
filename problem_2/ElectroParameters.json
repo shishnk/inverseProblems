@@ -43,6 +43,6 @@
       }
     }
   ],
-  "Primary sigma": [ 9, 10 ],
+  "Primary sigma": [ 0.01, 0.1 ],
   "Noises": [ 0, 0, 0 ]
 }

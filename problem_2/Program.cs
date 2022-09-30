@@ -10,8 +10,23 @@ Func<double, double, double> source = (double r, double z) => 0.0;
 
 FEMBuilder femBuilder = new();
 FEMBuilder.FEM fem = femBuilder.SetMesh(mesh).SetBasis(new LinearBasis()).SetSolver(new LOSLU(1000, 1e-13)).SetTest(source);
-Console.WriteLine($"Residual: {fem.Solve()}"); 
+Console.WriteLine($"Residual: {fem.Solve()}");
 
+#region Для Python
+System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
+// Выводим все значения функции с 1-ого по Z слоя (для отрисовки графика)
+using (var sw = new StreamWriter("../../../Python/function.txt"))
+{
+    for (int i = 0; i < mesh.Elements[0].Nodes[2]; i++)
+    {
+        double rPoint = mesh.Points[i].R;
+        double value = fem.Solution!.Value[i];
+
+        sw.WriteLine($"{string.Format("{0:f14}", rPoint)}\t {string.Format("{0:f14}", value)}");
+    }
+}
+#endregion
 
 // Electro Exploration
 ElectroParameters electroParameters = ElectroParameters.ReadJson("ElectroParameters.json");

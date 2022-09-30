@@ -130,7 +130,7 @@ public class SparseMatrix
         {
             for (int j = 0; j < Size; j++)
             {
-                sw.Write(a[i, j].ToString("0.0000") + "\t");
+                sw.Write(a[i, j].ToString("0.0000") + "\t\t");
             }
 
             sw.WriteLine();

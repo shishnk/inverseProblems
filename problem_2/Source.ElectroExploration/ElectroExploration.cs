@@ -24,7 +24,7 @@ public class ElectroExplorationBuilder
         private readonly FEMBuilder.FEM _fem;
         private double _current;
 
-        private const double _deltaSigma = 2E-3;
+        private const double _deltaSigma = 1E-2;
         private double _alphaRegulator = 1E-12;
 
         public ImmutableArray<double> Sigma => _sigma.ToImmutableArray();

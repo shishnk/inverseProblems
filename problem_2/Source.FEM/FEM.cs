@@ -253,8 +253,7 @@ public class FEMBuilder
 
             if (_field is null)
             {
-                _globalMatrix.Di[0] = 1E+32;
-                _globalVector[0] = 1E+32;
+                _globalVector[0] = 1.0;
             }
         }
 
@@ -287,6 +286,7 @@ public class FEMBuilder
         public double Solve()
         {
             AssemblySLAE();
+
             AddDirichlet();
 
             _solver.SetSLAE(_globalMatrix, _globalVector);
