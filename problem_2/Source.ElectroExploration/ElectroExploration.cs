@@ -19,7 +19,7 @@ public class ElectroExplorationBuilder
         private readonly Matrix<double> _potentialsDiffs;
         private readonly Matrix<double> _matrix;
         private readonly Vector<double> _vector;
-        private readonly double[] _sigma;
+        private readonly double[] _sigmas;
         private readonly Mesh _mesh;
         private readonly FEMBuilder.FEM _fem;
         private readonly double _current;
@@ -27,7 +27,8 @@ public class ElectroExplorationBuilder
         private const double DeltaSigma = 1E-2;
         private double _alphaRegulator = 1E-12;
 
-        public ImmutableArray<double> Sigma => _sigma.ToImmutableArray();
+        public ImmutableArray<double> Sigmas => _sigmas.ToImmutableArray();
+        public double Functional { get; private set; }
 
         public ElectroExploration(ElectroParameters parameters, Mesh mesh, FEMBuilder.FEM fem, DirectSolver solver)
         {
@@ -38,14 +39,14 @@ public class ElectroExplorationBuilder
             _fem = fem;
             _mesh = mesh;
 
-            _sigma = _parameters.PrimarySigma!;
+            _sigmas = _parameters.PrimarySigma!;
 
-            _matrix = new(_sigma.Length);
-            _vector = new(_sigma.Length);
+            _matrix = new(_sigmas.Length);
+            _vector = new(_sigmas.Length);
 
             _potentials = new(_parameters.PowerReceivers!.Length);
             _currentPotentials = new(_parameters.PowerReceivers.Length);
-            _potentialsDiffs = new(_sigma.Length, _parameters.PowerReceivers.Length);
+            _potentialsDiffs = new(_sigmas.Length, _parameters.PowerReceivers.Length);
         }
 
         private double Potential(int ireciever)
@@ -69,16 +70,16 @@ public class ElectroExplorationBuilder
 
         private void CalcDiffs()
         {
-            for (int i = 0; i < _sigma.Length; i++)
+            for (int i = 0; i < _sigmas.Length; i++)
             {
                 for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
                 {
-                    _sigma[i] += DeltaSigma;
+                    _sigmas[i] += DeltaSigma;
 
-                    _fem.UpdateMesh(_sigma);
+                    _fem.UpdateMesh(_sigmas);
                     _fem.Solve();
 
-                    _sigma[i] -= DeltaSigma;
+                    _sigmas[i] -= DeltaSigma;
 
                     _potentialsDiffs[i, j] = (Potential(j) - _currentPotentials[j]) / DeltaSigma;
                 }
@@ -92,9 +93,9 @@ public class ElectroExplorationBuilder
             _matrix.Clear();
             _vector.Fill(0.0);
 
-            for (int q = 0; q < _sigma.Length; q++)
+            for (int q = 0; q < _sigmas.Length; q++)
             {
-                for (int s = 0; s < _sigma.Length; s++)
+                for (int s = 0; s < _sigmas.Length; s++)
                 {
                     for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                     {
@@ -133,7 +134,7 @@ public class ElectroExplorationBuilder
         {
             const double eps = 1E-7;
 
-            _fem.UpdateMesh(_sigma);
+            _fem.UpdateMesh(_sigmas);
             _fem.Solve();
 
             for (int i = 0; i < _currentPotentials.Length; i++)
@@ -141,26 +142,13 @@ public class ElectroExplorationBuilder
                 _currentPotentials[i] = Potential(i);
             }
 
-            double functional = Functional(_currentPotentials.ToArray());
+            double functional = CalculateFunctional(_currentPotentials.ToArray());
 
             int iters = 0;
 
             while (functional >= eps && iters < 500)
             {
-                // for report
-                var sw = new StreamWriter("../../../CSV/1.csv", true);
-                using (sw)
-                {
-                    if (iters == 0)
-                    {
-                        sw.WriteLine($"Iter,Functional,sigma1,sigma2");
-                    }
-
-                    sw.WriteLine($"{iters},{functional},{_sigma[0]},{_sigma[1]}");
-                }
-
-
-                Console.WriteLine($"Iter: {iters},  Functional: {functional}, Sigmas: {_sigma[0]}, {_sigma[1]}");
+                Console.WriteLine($"Iter: {iters},  Functional: {functional}, Sigmas: {_sigmas[0]}, {_sigmas[1]}");
 
                 iters++;
 
@@ -172,12 +160,12 @@ public class ElectroExplorationBuilder
 
                 Regularization();
 
-                for (int i = 0; i < _sigma.Length; i++)
+                for (int i = 0; i < _sigmas.Length; i++)
                 {
-                    _sigma[i] += _solver.Solution!.Value[i];
+                    _sigmas[i] += _solver.Solution!.Value[i];
                 }
 
-                _fem.UpdateMesh(_sigma);
+                _fem.UpdateMesh(_sigmas);
                 _fem.Solve();
 
                 for (int i = 0; i < _currentPotentials.Length; i++)
@@ -185,13 +173,13 @@ public class ElectroExplorationBuilder
                     _currentPotentials[i] = Potential(i);
                 }
 
-                functional = Functional(_currentPotentials.ToArray());
+                functional = CalculateFunctional(_currentPotentials.ToArray());
             }
 
             return functional;
         }
 
-        private double Functional(double[] currentPotentials)
+        private double CalculateFunctional(double[] currentPotentials)
         {
             double functional = 0.0;
 
@@ -228,11 +216,10 @@ public class ElectroExplorationBuilder
             }
         }
 
-        public double Solve()
+        public void Solve()
         {
             DirectProblem();
-            double functional = InverseProblem();
-            return functional;
+            Functional = InverseProblem();
         }
     }
 

@@ -14,7 +14,7 @@ public static class EnumerableExtensions
         return Math.Sqrt(Convert.ToDouble(scalar));
     }
     
-    public static void Copy<T>(this T[] source, T[] destination)
+    public static void CopyTo<T>(this T[] source, T[] destination)
     {
         for (int i = 0; i < source.Length; i++)
         {
