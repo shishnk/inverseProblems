@@ -13,6 +13,7 @@
 		<Using Include="System.Collections.Immutable" />
 		<Using Include="System.Collections" />
 		<Using Include="System.Diagnostics" />
+		<Using Include="problem_3" />
 	</ItemGroup>
 
 </Project>

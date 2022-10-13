@@ -2,14 +2,12 @@
 
 public class Specimen
 {
-    private List<double> _genotype;
-    private List<double> _phenotype = default!;
+    private readonly IList<double> _genotype;
+    private List<double>? _phenotype;
     public double Functional { get; private set; }
-
-    public ImmutableArray<double> Phenotype => _phenotype!.ToImmutableArray();
     public ImmutableArray<double> Genotype => _genotype.ToImmutableArray();
 
-    public Specimen(List<double> genes) => _genotype = genes;
+    public Specimen(IList<double> genes) => _genotype = genes;
 
     private double PolynomValue(double x)
     {
@@ -26,7 +24,7 @@ public class Specimen
         return value;
     }
 
-    public void SetPhenotype(List<double> phenotype)
+    public void SetPhenotype(IList<double> phenotype)
     {
         _phenotype ??= new(new double[phenotype.Count]);
 
@@ -37,13 +35,13 @@ public class Specimen
     }
 
     public void SetFunctional(Specimen realSpecimen)
-    {      
+    {
         for (int i = 0; i < _phenotype!.Count; i++)
         {
-            Functional += Math.Abs(_phenotype[i] - realSpecimen.Phenotype[i]);
+            Functional += Math.Abs(_phenotype[i] - realSpecimen._phenotype![i]);
         }
     }
 
-    public void Mutation(int igen, double mutation) => 
-        _genotype[igen] = mutation;
+    public void Mutation(int igen, double mutation)
+        => _genotype[igen] = mutation;
 }

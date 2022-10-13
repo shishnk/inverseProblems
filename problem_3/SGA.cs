@@ -2,33 +2,35 @@
 
 public class SimpleGeneticAlgorithm
 {
-    private const int _populationSize = 10000;
-    private const int _maxParent = 10;
-    private const double _minFunctional = 1E-7;
-    private const double _mutationProbability = 0.99;
-    private List<double> _genotype;
-    private List<double> _phenotype;
+    private const int PopulationSize = 10000;
+    private const int MaxParent = 10;
+    private const double MinFunctional = 1E-7;
+    private const double MutationProbability = 0.99;
+    private readonly IList<double> _genotype;
+    private readonly IList<double> _phenotype;
+    private readonly double _noise;
     private readonly Specimen _realSpecimen;
-    private List<Specimen> _population;
-    private List<Specimen> _newPopulation;
+    private IList<Specimen> _population;
+    private IList<Specimen> _newPopulation;
 
     public ImmutableArray<Specimen> Population => _population.ToImmutableArray();
 
-    public SimpleGeneticAlgorithm(List<double> genotype, List<double> phenotype)
+    public SimpleGeneticAlgorithm(IList<double> genotype, IList<double> phenotype, double noise)
     {
         _genotype = genotype;
         _phenotype = phenotype;
+        _noise = noise;
 
         _realSpecimen = new(genotype);
         _realSpecimen.SetPhenotype(phenotype);
 
-        _population = new();
-        _newPopulation = new();
+        _population = new List<Specimen>();
+        _newPopulation = new List<Specimen>();
     }
 
     private void PrimaryPopulation()
     {
-        for (int i = 0; i < _populationSize; i++)
+        for (int i = 0; i < PopulationSize; i++)
         {
             List<double> specimenGenotype = new();
 
@@ -42,7 +44,7 @@ public class SimpleGeneticAlgorithm
             _population[i].SetFunctional(_realSpecimen);
         }
 
-        _population = new(_population.OrderBy(specimen => specimen.Functional));
+        _population = new List<Specimen>(_population.OrderBy(specimen => specimen.Functional));
     }
 
     private Specimen Child(Specimen father, Specimen mother)
@@ -68,10 +70,9 @@ public class SimpleGeneticAlgorithm
     {
         double prob = new Random().NextDouble();
 
-        if (prob < _mutationProbability)
+        if (prob < MutationProbability)
         {
             int igen = new Random().Next(0, _genotype.Count);
-
             specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
         }
     }
@@ -80,22 +81,21 @@ public class SimpleGeneticAlgorithm
     {
         _newPopulation = new List<Specimen>(_population);
 
-        for (int i = 0; i < _maxParent; i++)
+        for (int i = 0; i < MaxParent; i++)
         {
-            for (int j = 0; j < _populationSize / _maxParent; j++)
+            for (int j = 0; j < PopulationSize / MaxParent; j++)
             {
                 // Произвольный номер второго родителя
-                int k = new Random().Next(0, _populationSize);
+                int k = new Random().Next(0, PopulationSize);
 
                 var child = Child(_population[i], _population[k]);
 
                 Mutation(child);
-
                 _newPopulation.Add(child);
             }
         }
 
-        for (int i = 0; i < _populationSize * 2; i++)
+        for (int i = 0; i < PopulationSize * 2; i++)
         {
             _newPopulation[i].SetPhenotype(_phenotype);
             _newPopulation[i].SetFunctional(_realSpecimen);
@@ -104,18 +104,18 @@ public class SimpleGeneticAlgorithm
         _newPopulation = _newPopulation.OrderBy(specimen => specimen.Functional).ToList();
     }
 
-    private double Selection(double functional)
+    private double Selection()
     {
-        functional = 1e+30;
+        var functional = 1e+30;
 
-        for (int i = 0; i < _populationSize; i++)
+        for (int i = 0; i < PopulationSize; i++)
         {
             _population[i] = _newPopulation[i];
         }
 
-        if (_population[0].Functional < functional) 
+        if (_population[0].Functional < functional)
         {
-            functional = _population[0].Functional; 
+            functional = _population[0].Functional;
         }
 
         return functional;
@@ -123,9 +123,10 @@ public class SimpleGeneticAlgorithm
 
     public void Inverse()
     {
+        NoisyValues();
         PrimaryPopulation();
 
-        double functional = 1e+30;
+        var functional = 1e+30;
 
         if (_population[0].Functional < functional)
         {
@@ -137,16 +138,19 @@ public class SimpleGeneticAlgorithm
         for (int iter = 1; iter < 200; iter++)
         {
             NewPopulation();
-
-            functional = Selection(functional);
+            functional = Selection();
 
             Console.WriteLine($"{iter}:\tfunctional = {functional}");
 
-            if (functional < _minFunctional)
-            {
-                break;
-            }
+            if (functional < MinFunctional) break;
         }
+    }
 
+    private void NoisyValues()
+    {
+        for (int i = 0; i < _genotype.Count; i++)
+        {
+            _genotype[i] += _genotype[i] * (_noise / 10.0);
+        }
     }
 }
