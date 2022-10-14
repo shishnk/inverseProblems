@@ -36,7 +36,8 @@ public class SimpleGeneticAlgorithm
 
             for (int j = 0; j < _genotype.Count; j++)
             {
-                specimenGenotype.Add(new Random().NextDouble() * _phenotype.Count);
+                //specimenGenotype.Add(new Random().NextDouble() * _phenotype.Count);
+                specimenGenotype.Add(new Random().NextDouble());
             }
 
             _population.Add(new Specimen(specimenGenotype));
@@ -73,6 +74,14 @@ public class SimpleGeneticAlgorithm
         if (prob < MutationProbability)
         {
             int igen = new Random().Next(0, _genotype.Count);
+            specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
+            igen = new Random().Next(0, _genotype.Count);
+            specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
+            igen = new Random().Next(0, _genotype.Count);
+            specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
+            igen = new Random().Next(0, _genotype.Count);
+            specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
+            igen = new Random().Next(0, _genotype.Count);
             specimen.Mutation(igen, new Random().NextDouble() * _phenotype.Count);
         }
     }
@@ -135,10 +144,13 @@ public class SimpleGeneticAlgorithm
 
         Console.WriteLine($"{0}:\tfunctional = {functional}");
 
-        for (int iter = 1; iter < 200; iter++)
+        var result = new double[200];
+
+        for (int iter = 0; iter < 200; iter++)
         {
             NewPopulation();
             functional = Selection();
+            result[iter] = functional;
 
             Console.WriteLine($"{iter}:\tfunctional = {functional}");
 
@@ -150,7 +162,7 @@ public class SimpleGeneticAlgorithm
     {
         for (int i = 0; i < _genotype.Count; i++)
         {
-            _genotype[i] += _genotype[i] * (_noise / 10.0);
+            _genotype[i] += _genotype[i] * (_noise / 100.0);
         }
     }
 }
