@@ -1,4 +1,6 @@
-﻿namespace problem_2.Source.FEM;
+﻿using System.Numerics;
+
+namespace problem_2.Source.FEM;
 
 public static class EnumerableExtensions
 {

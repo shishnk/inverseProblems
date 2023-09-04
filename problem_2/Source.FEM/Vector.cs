@@ -1,18 +1,18 @@
-﻿namespace problem_2.Source.FEM;
+﻿using System.Numerics;
 
-public class Vector<T> : IEnumerable<T> where T : INumber<T>
+namespace problem_2.Source.FEM;
+
+public class Vector<T>(int length) : IEnumerable<T>
+    where T : INumber<T>
 {
-    private readonly T[] _storage;
-    public int Length { get; }
+    private readonly T[] _storage = new T[length];
+    public int Length { get; } = length;
 
     public T this[int idx]
     {
         get => _storage[idx];
         set => _storage[idx] = value;
     }
-
-    public Vector(int length)
-        => (Length, _storage) = (length, new T[length]);
 
     public static T operator *(Vector<T> a, Vector<T> b)
     {
@@ -32,7 +32,7 @@ public class Vector<T> : IEnumerable<T> where T : INumber<T>
 
         for (int i = 0; i < vector.Length; i++)
         {
-            result[i] = vector[i] * T.Create(constant);
+            result[i] = vector[i] * T.CreateChecked(constant);
         }
 
         return result;
@@ -82,13 +82,13 @@ public class Vector<T> : IEnumerable<T> where T : INumber<T>
     {
         for (int i = 0; i < Length; i++)
         {
-            _storage[i] = T.Create(value);
+            _storage[i] = T.CreateChecked(value);
         }
     }
 
     public double Norm()
     {
-        T result = T.Zero;
+        var result = T.Zero;
 
         for (int i = 0; i < Length; i++)
         {

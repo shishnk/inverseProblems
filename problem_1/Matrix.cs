@@ -1,4 +1,6 @@
-﻿namespace problem_1;
+﻿using System.Numerics;
+
+namespace problem_1;
 
 public class Matrix<T> where T : INumber<T>
 {
