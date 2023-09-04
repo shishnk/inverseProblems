@@ -17,7 +17,7 @@ public readonly record struct BoundaryConditions
 
     public static BoundaryConditions ReadJson(string jsonPath)
     {
-        if (!File.Exists(jsonPath)) throw new FileNotFoundException("File does not exist");
+        if (!File.Exists(jsonPath)) throw new FileNotFoundException($"File {jsonPath} does not exist");
 
         using var sr = new StreamReader(jsonPath);
         return JsonConvert.DeserializeObject<BoundaryConditions?>(sr.ReadToEnd()) ??

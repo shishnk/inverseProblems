@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Globalization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace problem_4.Geometry;
@@ -40,7 +41,7 @@ public readonly record struct Interval(double LeftBorder, double RightBorder)
     public static bool TryParse(string line, out Interval interval)
     {
         var words = line.Split(new[] { ' ', ',', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length != 2 || !float.TryParse(words[0], out var x) || !float.TryParse(words[1], out var y))
+        if (words.Length != 2 || !float.TryParse(words[0], CultureInfo.InvariantCulture, out var x) || !float.TryParse(words[1], CultureInfo.InvariantCulture, out var y))
         {
             interval = default;
             return false;

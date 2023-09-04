@@ -49,6 +49,8 @@ public class Fem
     private Vector<double> _localVector = default!;
     private Vector<double> _globalVector = default!;
 
+    public double[]? Solution => _solver.Solution?.ToArray();
+
     public void Compute()
     {
         Initialize();
@@ -156,5 +158,25 @@ public class Fem
                 }
             }
         }
+    }
+
+    public double RootMeanSquare()
+    {
+        Span<double> exact = stackalloc double[_solver.Solution!.Value.Length];
+        int index = 0;
+        
+        foreach (var p in _mesh.Points)
+        {
+            exact[index++] = _test.U(p);
+        }
+
+        double error = 0.0;
+        
+        for (int i = 0; i < exact.Length; i++)
+        {
+            error += (exact[i] - _solver.Solution!.Value[i]) * (exact[i] - _solver.Solution!.Value[i]);
+        }
+
+        return Math.Sqrt(error / _mesh.Points.Count);
     }
 }
