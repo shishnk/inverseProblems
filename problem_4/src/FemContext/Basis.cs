@@ -18,7 +18,7 @@ public readonly record struct LinearBasis : IBasis
     public double GetPsi(int number, Point2D point)
         => number switch
         {
-            0 => (1.0 - point.R) * (1.0 - point.R),
+            0 => (1.0 - point.R) * (1.0 - point.Z),
             1 => point.R * (1.0 - point.Z),
             2 => (1.0 - point.R) * point.Z,
             3 => point.R * point.Z,

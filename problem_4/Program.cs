@@ -12,7 +12,7 @@ Fem femSolver = Fem.CreateBuilder()
     .SetMesh(mesh)
     .SetBoundaryHandler(boundaryHandler)
     .SetAssembler(new MatrixAssembler(new LinearBasis(), new(Quadratures.SegmentGaussOrder5()), mesh))
-    .SetTest(new Test3())
+    .SetTest(new Test4())
     .SetSolver(new LOSLU(1000, 1E-20));
 
 femSolver.Compute();

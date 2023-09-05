@@ -28,6 +28,9 @@ public class MatrixAssembler
 
     public void BuildLocalMatrices(int ielem)
     {
+        var ri = _mesh.Points[_mesh.Elements[ielem].Nodes.First()].R;
+        var hr = _mesh.Points[_mesh.Elements[ielem].Nodes.Last()].R - ri;
+        
         var templateElement = new Rectangle(new(0.0, 0.0), new(1.0, 1.0));
 
         for (int i = 0; i < _basis.Size; i++)
@@ -38,16 +41,19 @@ public class MatrixAssembler
                 var j1 = j;
                 var function = double (Point2D p) =>
                 {
-                    var dxFi1 = _basis.GetDPsi(i1, 0, p);
-                    var dxFi2 = _basis.GetDPsi(j1, 0, p);
-                    var dyFi1 = _basis.GetDPsi(i1, 1, p);
-                    var dyFi2 = _basis.GetDPsi(j1, 1, p);
+                    var dxPhi1 = _basis.GetDPsi(i1, 0, p);
+                    var dxPhi2 = _basis.GetDPsi(j1, 0, p);
+                    var dyPhi1 = _basis.GetDPsi(i1, 1, p);
+                    var dyPhi2 = _basis.GetDPsi(j1, 1, p);
 
                     var calculates = CalculateJacobian(ielem, p);
-                    var vector1 = new Vector<double>(calculates.Reverse.Size) { new[] { dxFi1, dyFi1 } };
-                    var vector2 = new Vector<double>(calculates.Reverse.Size) { new[] { dxFi2, dyFi2 } };
+                    var vector1 = new Vector<double>(calculates.Reverse.Size) { new[] { dxPhi1, dyPhi1 } };
+                    var vector2 = new Vector<double>(calculates.Reverse.Size) { new[] { dxPhi2, dyPhi2 } };
 
-                    return p.R * calculates.Reverse * vector1 * (calculates.Reverse * vector2) *
+                    // return p.R * calculates.Reverse * vector1 * (calculates.Reverse * vector2) *
+                    //        Math.Abs(calculates.Determinant);
+                    
+                    return (ri + hr * p.R) * calculates.Reverse * vector1 * (calculates.Reverse * vector2) *
                            Math.Abs(calculates.Determinant);
                 };
 
@@ -60,7 +66,7 @@ public class MatrixAssembler
                     var fi2 = _basis.GetPsi(j1, p);
                     var calculates = CalculateJacobian(ielem, p);
 
-                    return p.R * fi1 * fi2 * Math.Abs(calculates.Determinant);
+                    return (ri + hr * p.R) * fi1 * fi2 * Math.Abs(calculates.Determinant);
                 };
                 _baseMassMatrix![i, j] = _baseMassMatrix[j, i] =
                     _integrator.Gauss2D(function, templateElement);

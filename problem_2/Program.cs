@@ -5,15 +5,15 @@ var mesh = meshGenerator.CreateMesh();
 mesh.Save("Mesh.json");
 
 // FEM
-double Field(double r, double z) => r * r + z;
-double Source(double r, double z) => 0.0;
+double Field(double r, double z) => r * r * r + z;
+double Source(double r, double z) => -9.0 * r;
 
 FEMBuilder.FEM fem = FEMBuilder.FEM
     .CreateBuilder()
     .SetMesh(mesh)
     .SetBasis(new LinearBasis())
-    .SetSolver(new LOSLU(1000, 1e-13))
-    .SetTest(Source);
+    .SetSolver(new LOSLU(1000, 1e-20))
+    .SetTest(Source, Field);
 
 fem.Solve();
 Console.WriteLine($"Residual: {fem.Residual}");

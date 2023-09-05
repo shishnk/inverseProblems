@@ -1,6 +1,6 @@
 ﻿{
-  "Abscissa interval": "[0.0, 2.0]",
-  "Abscissa splits": 40,
-  "Ordinate interval": "[0.0, 2.0]",
-  "Ordinate splits": 40
+  "Abscissa interval": "[0.0, 20.0]",
+  "Abscissa splits": 256,
+  "Ordinate interval": "[0.0, 20.0]",
+  "Ordinate splits": 10
 }

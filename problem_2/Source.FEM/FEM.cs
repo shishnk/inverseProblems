@@ -54,7 +54,10 @@ public class FEMBuilder
         public void Solve()
         {
             AssemblySystem();
+            
+            _globalMatrix.PrintDense("matrix");
             AccountingDirichletBoundary();
+            _globalMatrix.PrintDense("matrixDirichlet");
 
             _solver.SetSystem(_globalMatrix, _globalVector);
             _solver.Compute();

@@ -55,7 +55,9 @@ public class Fem
     {
         Initialize();
         AssemblySystem();
+        _assembler.GlobalMatrix.PrintDense("matrix4");
         AccountingDirichletBoundary();
+        _assembler.GlobalMatrix.PrintDense("matrixDirichlet4");
 
         _solver.SetMatrixEx(_assembler.GlobalMatrix!).SetVectorEx(_globalVector).Compute();
     }
@@ -113,17 +115,24 @@ public class Fem
 
     private void AccountingDirichletBoundary()
     {
+        // foreach (var dirichlet in _boundaryHandler.Process())
+        // {
+        //     var point = _mesh.Points[dirichlet.Node];
+        //
+        //     _assembler.GlobalMatrix!.Di[dirichlet.Node] = 1E+32;
+        //     _globalVector[dirichlet.Node] = _test.U(point) * 1E+32;
+        // }
         Span<int> checkBc = stackalloc int[_mesh.Points.Count];
-
+        
         checkBc.Fill(-1);
         var boundariesArray = _boundaryHandler.Process().ToArray();
-
+        
         for (int i = 0; i < boundariesArray.Length; i++)
         {
             checkBc[boundariesArray[i].Node] = i;
             boundariesArray[i].Value = _test.U(_mesh.Points[boundariesArray[i].Node]);
         }
-
+        
         for (int i = 0; i < _mesh.Points.Count; i++)
         {
             int index;
@@ -131,16 +140,16 @@ public class Fem
             {
                 _assembler.GlobalMatrix!.Di[i] = 1.0;
                 _globalVector[i] = boundariesArray[checkBc[i]].Value;
-
+        
                 for (int k = _assembler.GlobalMatrix.Ig[i]; k < _assembler.GlobalMatrix.Ig[i + 1]; k++)
                 {
                     index = _assembler.GlobalMatrix.Jg[k];
-
+        
                     if (checkBc[index] == -1)
                     {
                         _globalVector[index] -= _assembler.GlobalMatrix.Ggu[k] * _globalVector[i];
                     }
-
+        
                     _assembler.GlobalMatrix.Ggu[k] = 0.0;
                     _assembler.GlobalMatrix.Ggl[k] = 0.0;
                 }
@@ -150,7 +159,7 @@ public class Fem
                 for (int k = _assembler.GlobalMatrix!.Ig[i]; k < _assembler.GlobalMatrix.Ig[i + 1]; k++)
                 {
                     index = _assembler.GlobalMatrix.Jg[k];
-
+        
                     if (checkBc[index] == -1) continue;
                     _globalVector[i] -= _assembler.GlobalMatrix.Ggl[k] * _globalVector[index];
                     _assembler.GlobalMatrix.Ggl[k] = 0.0;

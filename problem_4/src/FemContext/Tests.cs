@@ -26,7 +26,14 @@ public class Test2 : ITest
 
 public class Test3 : ITest
 {
-    public double U(Point2D point) => point.Z * point.Z;
+    public double U(Point2D point) => point.R * point.R + point.Z;
 
-    public double F(Point2D point) => -2.0;
+    public double F(Point2D point) => -4.0;
+}
+
+public class Test4 : ITest
+{
+    public double U(Point2D point) => point.R * point.R * point.R + point.Z;
+
+    public double F(Point2D point) => -9.0 * point.R;
 }
