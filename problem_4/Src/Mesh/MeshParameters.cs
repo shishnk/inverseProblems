@@ -59,8 +59,6 @@ public class MeshParametersJsonConverter : JsonConverter
         if (reader.TokenType is JsonToken.Null or not JsonToken.StartObject) return null;
 
         List<Layer> layers = new();
-        List<int> splitsZ = new();
-        List<double> kz = new();
 
         var data = JObject.Load(reader);
 
@@ -72,6 +70,12 @@ public class MeshParametersJsonConverter : JsonConverter
 
         token = data["Coefficient R"];
         var kr = Convert.ToDouble(token);
+        
+        token = data["Splits Z"];
+        var splitsZ = Convert.ToInt32(token);
+
+        token = data["Coefficient Z"];
+        var kz = Convert.ToDouble(token);
 
         token = data["Layers"];
 
@@ -80,26 +84,12 @@ public class MeshParametersJsonConverter : JsonConverter
             layers.Add(serializer.Deserialize<Layer>(child.CreateReader()));
         }
 
-        token = data["Splits Z"];
-
-        foreach (var child in token!)
-        {
-            splitsZ.Add(serializer.Deserialize<int>(child.CreateReader()));
-        }
-
-        token = data["Coefficients Z"];
-
-        foreach (var child in token!)
-        {
-            kz.Add(serializer.Deserialize<double>(child.CreateReader()));
-        }
-
         var leftBorder = Convert.ToByte(data["Left border"]);
         var rightBorder = Convert.ToByte(data["Right border"]);
         var bottomBorder = Convert.ToByte(data["Bottom border"]);
         var topBorder = Convert.ToByte(data["Top border"]);
 
-        return new MeshParameters(intervalR, splitsR, kr, layers, splitsZ, kz, leftBorder, rightBorder, bottomBorder,
+        return new MeshParameters(intervalR, splitsR, kr, splitsZ, kz, layers, leftBorder, rightBorder, bottomBorder,
             topBorder);
     }
 
@@ -113,9 +103,9 @@ public class MeshParameters
     public Interval IntervalR { get; }
     public int SplitsR { get; }
     public double Kr { get; }
+    public int SplitsZ { get; }
+    public double Kz { get; }
     public ImmutableList<Layer> Layers { get; }
-    public ImmutableList<int> SplitsZ { get; }
-    public ImmutableList<double> Kz { get; }
 
     public byte LeftBorder { get; }
     public byte RightBorder { get; }
@@ -123,17 +113,15 @@ public class MeshParameters
     public byte TopBorder { get; }
 
     public MeshParameters(
-        Interval intervalR, int splitsR, double kr,
-        List<Layer> layers, List<int> splitsZ, List<double> kz,
-        byte leftBorder, byte rightBorder,
-        byte bottomBorder, byte topBorder)
+        Interval intervalR, int splitsR, double kr, int splitsZ, double kz, List<Layer> layers,
+        byte leftBorder, byte rightBorder, byte bottomBorder, byte topBorder)
     {
         IntervalR = intervalR;
         SplitsR = splitsR;
         Kr = kr;
         Layers = layers.ToImmutableList();
-        SplitsZ = splitsZ.ToImmutableList();
-        Kz = kz.ToImmutableList();
+        SplitsZ = splitsZ;
+        Kz = kz;
         LeftBorder = leftBorder;
         RightBorder = rightBorder;
         BottomBorder = bottomBorder;

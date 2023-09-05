@@ -6,14 +6,14 @@ mesh.Save("Mesh.json");
 
 // FEM
 double Field(double r, double z) => r * r * r + z;
-double Source(double r, double z) => -9.0 * r;
+double Source(double r, double z) => 0.0;
 
 FEMBuilder.FEM fem = FEMBuilder.FEM
     .CreateBuilder()
     .SetMesh(mesh)
     .SetBasis(new LinearBasis())
     .SetSolver(new LOSLU(1000, 1e-20))
-    .SetTest(Source, Field);
+    .SetTest(Source);
 
 fem.Solve();
 Console.WriteLine($"Residual: {fem.Residual}");

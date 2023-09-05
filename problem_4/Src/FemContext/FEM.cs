@@ -233,7 +233,7 @@ public class FEMBuilder
             for (int ielem = 0; ielem < _mesh.Elements.Length; ielem++)
             {
                 var elem = _mesh.Elements[ielem];
-                double coef = _mesh.AreaProperty[elem.AreaNumber];
+                double coef = elem.Material;
 
                 BuildLocalMatrices(ielem);
                 BuildLocalVector(ielem);

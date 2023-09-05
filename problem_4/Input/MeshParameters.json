@@ -1,20 +1,23 @@
 {
   "Interval R": {
     "Left border": 0.0,
-    "Right border": 20.0
+    "Right border": 5000.0
   },
-  "Splits R": 10,
-  "Coefficient R": 1.0,
-
+  "Splits R": 30,
+  "Coefficient R": 1,
+  "Splits Z": 10,
+  "Coefficient Z": 1,
+  
   "Layers": [
     {
-      "Height": 20.0,
-      "Sigma": 1
+      "Height": 2.0,
+      "Sigma": 0.2
+    },
+    {
+      "Height": 8.0,
+      "Sigma": 0.08
     }
   ],
-
-  "Splits Z": [ 10 ],
-  "Coefficients Z": [ 1 ],
   
   "Left border": 1,
   "Right border": 1,

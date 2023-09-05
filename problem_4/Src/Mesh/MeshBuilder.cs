@@ -16,7 +16,7 @@ public class MeshBuilder : IMeshBuilder
     public IEnumerable<Point2D> CreatePoints()
     {
         double[] pointsR = new double[_params.SplitsR + 1];
-        double[] pointsZ = new double[_params.SplitsZ.Sum() + 1];
+        double[] pointsZ = new double[_params.SplitsZ + 1];
 
         _points = new Point2D[pointsR.Length * pointsZ.Length];
 
@@ -31,28 +31,18 @@ public class MeshBuilder : IMeshBuilder
             rPoint += hr;
             hr *= _params.Kr;
         }
-
+        
         double zPoint = 0.0;
+        double depth = _params.Layers.Select(layer => layer.Height).Sum();
+        double hz = Math.Abs(_params.Kz - 1.0) < 1E-14
+            ? depth / _params.SplitsZ
+            : depth * (1.0 - _params.Kz) / (1.0 - Math.Pow(_params.Kz, _params.SplitsZ));
 
-        for (int ilayer = 0, ipoint = 0; ilayer < _params.SplitsZ.Count; ilayer++)
+        for (int i = 0; i < _params.SplitsZ + 1; i++)
         {
-            var layer = _params.Layers[ilayer];
-            var splitsZ = _params.SplitsZ[ilayer];
-            var kz = _params.Kz[ilayer];
-
-            double hz = Math.Abs(kz - 1.0) < 1E-14
-                ? layer.Height / splitsZ
-                : (layer.Height) * (1.0 - kz) / (1.0 - Math.Pow(kz, splitsZ));
-
-            for (int i = 0; i < splitsZ + 1; i++)
-            {
-                pointsZ[ipoint++] = zPoint;
-                zPoint += hz;
-                hz *= kz;
-            }
-
-            zPoint = layer.Height;
-            ipoint--;
+            pointsZ[i] = zPoint;
+            zPoint += hz;
+            hz *= _params.Kz;
         }
 
         for (int i = 0, ipoint = 0; i < pointsZ.Length; i++)
@@ -68,28 +58,21 @@ public class MeshBuilder : IMeshBuilder
 
     public IEnumerable<FiniteElement> CreateElements()
     {
-        _elements = new FiniteElement[_params.SplitsR * _params.SplitsZ.Sum()];
+        _elements = new FiniteElement[_params.SplitsR * _params.SplitsZ];
 
         int[] nodes = new int[4];
 
-        int layerStartIdx = 0;
-
-        for (int ilayer = 0, ielem = 0; ilayer < _params.Layers.Count; ilayer++)
+        for (int i = 0, ielem = 0; i < _params.SplitsZ; i++)
         {
-            for (int i = 0; i < _params.SplitsZ[ilayer]; i++)
+            for (int j = 0; j < _params.SplitsR; j++)
             {
-                for (int j = 0; j < _params.SplitsR; j++)
-                {
-                    nodes[0] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i;
-                    nodes[1] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + 1;
-                    nodes[2] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 1;
-                    nodes[3] = ilayer * layerStartIdx + j + (_params.SplitsR + 1) * i + _params.SplitsR + 2;
+                nodes[0] = j + (_params.SplitsR + 1) * i;
+                nodes[1] = j + (_params.SplitsR + 1) * i + 1;
+                nodes[2] = j + (_params.SplitsR + 1) * i + _params.SplitsR + 1;
+                nodes[3] = j + (_params.SplitsR + 1) * i + _params.SplitsR + 2;
 
-                    _elements[ielem++] = new(nodes, ilayer);
-                }
+                _elements[ielem++] = new FiniteElement(nodes, 0);
             }
-
-            layerStartIdx += _params.SplitsZ[ilayer] * (_params.SplitsR + 1);
         }
 
         return _elements;
@@ -113,7 +96,7 @@ public class MeshBuilder : IMeshBuilder
 
         if (_params.TopBorder == 1)
         {
-            int startNode = (_params.SplitsR + 1) * _params.SplitsZ.Sum();
+            int startNode = (_params.SplitsR + 1) * _params.SplitsZ;
 
             for (int i = 0; i < _params.SplitsR + 1; i++)
             {
@@ -131,7 +114,7 @@ public class MeshBuilder : IMeshBuilder
 
         if (_params.LeftBorder == 1)
         {
-            for (int i = 0; i < _params.SplitsZ.Sum() + 1; i++)
+            for (int i = 0; i < _params.SplitsZ + 1; i++)
             {
                 dirichletNodes.Add(i * _params.SplitsR + i);
             }
@@ -139,7 +122,7 @@ public class MeshBuilder : IMeshBuilder
 
         if (_params.RightBorder == 1)
         {
-            for (int i = 0; i < _params.SplitsZ.Sum() + 1; i++)
+            for (int i = 0; i < _params.SplitsZ + 1; i++)
             {
                 dirichletNodes.Add(_params.SplitsR + i * (_params.SplitsR + 1));
             }
