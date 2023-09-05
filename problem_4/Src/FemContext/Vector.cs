@@ -5,7 +5,7 @@ using System.Numerics;
 namespace problem_4.FemContext;
 
 public class Vector<T>(int length) : IEnumerable<T>
-    where T : INumber<T>, IRootFunctions<T>
+    where T : INumber<T>
 {
     private readonly T[] _storage = new T[length];
     public int Length { get; } = length;
@@ -75,13 +75,12 @@ public class Vector<T>(int length) : IEnumerable<T>
     public static Vector<T> Copy(Vector<T> otherVector)
     {
         Vector<T> newVector = new(otherVector.Length);
-
-        Array.Copy(otherVector._storage, newVector._storage, otherVector.Length);
+        otherVector._storage.CopyTo(newVector._storage);
 
         return newVector;
     }
 
-    public void Fill(T value)
+    public void Fill(double value)
     {
         for (int i = 0; i < Length; i++)
         {
@@ -89,12 +88,28 @@ public class Vector<T>(int length) : IEnumerable<T>
         }
     }
 
-    public T Norm() => T.Sqrt(_storage.Aggregate(T.Zero, (current, t) => current + t * t));
+    public double Norm()
+    {
+        var result = T.Zero;
+
+        for (int i = 0; i < Length; i++)
+        {
+            result += _storage[i] * _storage[i];
+        }
+
+        return Math.Sqrt(Convert.ToDouble(result));
+    }
 
     public ImmutableArray<T> ToImmutableArray()
         => ImmutableArray.Create(_storage);
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_storage).GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        foreach (T value in _storage)
+        {
+            yield return value;
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

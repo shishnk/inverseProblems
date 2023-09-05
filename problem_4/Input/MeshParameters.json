@@ -1,0 +1,23 @@
+{
+  "Interval R": {
+    "Left border": 0.0,
+    "Right border": 20.0
+  },
+  "Splits R": 10,
+  "Coefficient R": 1.0,
+
+  "Layers": [
+    {
+      "Height": 20.0,
+      "Sigma": 1
+    }
+  ],
+
+  "Splits Z": [ 10 ],
+  "Coefficients Z": [ 1 ],
+  
+  "Left border": 1,
+  "Right border": 1,
+  "Top border": 1,
+  "Bottom border": 1
+}

@@ -3,36 +3,23 @@ using System.Diagnostics;
 
 namespace problem_4.FemContext;
 
-public static class IterativeSolverExtensions
-{
-    public static IterativeSolver SetMatrixEx(this IterativeSolver solver, SparseMatrix matrix)
-    {
-        solver.SetMatrix(matrix);
-        return solver;
-    }
-
-    public static IterativeSolver SetVectorEx(this IterativeSolver solver, Vector<double> vector)
-    {
-        solver.SetVector(vector);
-        return solver;
-    }
-}
-
-public abstract class IterativeSolver(int maxIters, double eps)
+public abstract class IterativeSolver
 {
     protected TimeSpan? _runningTime;
     protected SparseMatrix _matrix = default!;
     protected Vector<double> _vector = default!;
     protected Vector<double>? _solution;
 
-    public int MaxIters { get; } = maxIters;
-    public double Eps { get; } = eps;
+    public int MaxIters { get; }
+    public double Eps { get; }
     public TimeSpan? RunningTime => _runningTime;
     public ImmutableArray<double>? Solution => _solution?.ToImmutableArray();
+    
+    protected IterativeSolver(int maxIters, double eps)
+        => (MaxIters, Eps) = (maxIters, eps);
 
-    public void SetMatrix(SparseMatrix matrix) => _matrix = matrix;
-
-    public void SetVector(Vector<double> vector) => _vector = vector;
+    public void SetSystem(SparseMatrix matrix, Vector<double> vector)
+        => (_matrix, _vector) = (matrix, vector);
 
     public abstract void Compute();
 
@@ -126,109 +113,133 @@ public abstract class IterativeSolver(int maxIters, double eps)
     }
 }
 
-public class CGM(int maxIters, double eps) : IterativeSolver(maxIters, eps)
+public abstract class DirectSolver
 {
+    protected Vector<double>? _solution;
+    protected Vector<double> _vector = default!;
+    protected Matrix<double> _matrix = default!;
+    
+    public ImmutableArray<double>? Solution => _solution?.ToImmutableArray();
+
+    public void SetVector(Vector<double> vector)
+        => _vector = Vector<double>.Copy(vector);
+
+    public void SetMatrix(Matrix<double> matrix)
+        => _matrix = Matrix<double>.Copy(matrix);
+
+    protected DirectSolver(Matrix<double> matrix, Vector<double> vector)
+        => (_matrix, _vector) = (Matrix<double>.Copy(matrix), Vector<double>.Copy(vector));
+
+    protected DirectSolver()
+    {
+    }
+
+    public abstract void Compute();
+
+    public bool IsSolved() => !(Solution is null);
+}
+
+public class Gauss : DirectSolver
+{
+    public Gauss(Matrix<double> matrix, Vector<double> vector) : base(matrix, vector)
+    {
+    }
+
+    public Gauss()
+    {
+    }
+
     public override void Compute()
     {
+        _solution = null;
+
         try
         {
-            ArgumentNullException.ThrowIfNull(_matrix, $"{nameof(_matrix)} cannot be null, set the matrix");
-            ArgumentNullException.ThrowIfNull(_vector, $"{nameof(_vector)} cannot be null, set the vector");
+            ArgumentNullException.ThrowIfNull(_matrix, $"{nameof(_matrix)} cannot be null, set the Matrix");
+            ArgumentNullException.ThrowIfNull(_vector, $"{nameof(_vector)} cannot be null, set the Vector");
 
-            double vectorNorm = _vector.Norm();
+            if (_matrix.Rows != _matrix.Columns)
+            {
+                throw new NotSupportedException("The Gaussian method will not be able to solve this system");
+            }
+
+            double eps = 1E-15;
+
+            for (int k = 0; k < _matrix.Rows; k++)
+            {
+                var max = Math.Abs(_matrix[k, k]);
+                int index = k;
+
+                for (int i = k + 1; i < _matrix.Rows; i++)
+                {
+                    if (Math.Abs(_matrix[i, k]) > max)
+                    {
+                        max = Math.Abs(_matrix[i, k]);
+                        index = i;
+                    }
+                }
+
+                for (int j = 0; j < _matrix.Rows; j++)
+                {
+                    (_matrix[k, j], _matrix[index, j]) =
+                        (_matrix[index, j], _matrix[k, j]);
+                }
+
+                (_vector[k], _vector[index]) = (_vector[index], _vector[k]);
+
+                for (int i = k; i < _matrix.Rows; i++)
+                {
+                    double temp = _matrix[i, k];
+
+                    if (Math.Abs(temp) < eps)
+                    {
+                        throw new Exception("Zero element of the column");
+                    }
+
+                    for (int j = 0; j < _matrix.Rows; j++)
+                    {
+                        _matrix[i, j] /= temp;
+                    }
+
+                    _vector[i] /= temp;
+
+                    if (i != k)
+                    {
+                        for (int j = 0; j < _matrix.Rows; j++)
+                        {
+                            _matrix[i, j] -= _matrix[k, j];
+                        }
+
+                        _vector[i] -= _vector[k];
+                    }
+                }
+            }
 
             _solution = new(_vector.Length);
 
-            Vector<double> z = new(_vector.Length);
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            var r = _vector - (_matrix * _solution);
-
-            Vector<double>.Copy(r, z);
-
-            for (int iter = 0; iter < MaxIters && r.Norm() / vectorNorm >= Eps; iter++)
+            for (int k = _matrix.Rows - 1; k >= 0; k--)
             {
-                var tmp = _matrix * z;
-                var alpha = r * r / (tmp * z);
-                _solution += alpha * z;
-                var squareNorm = r * r;
-                r -= alpha * tmp;
-                var beta = r * r / squareNorm;
-                z = r + beta * z;
+                _solution![k] = _vector[k];
+
+                for (int i = 0; i < k; i++)
+                {
+                    _vector[i] -= _matrix[i, k] * _solution[k];
+                }
             }
-
-            sw.Stop();
-
-            _runningTime = sw.Elapsed;
-        }
-        catch (ArgumentNullException ex)
-        {
-            Console.WriteLine($"We had problem: {ex.Message}");
-            throw;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"We had problem: {ex.Message}");
+            Console.WriteLine(ex.Message);
         }
     }
 }
 
-public class LOS(int maxIters, double eps) : IterativeSolver(maxIters, eps)
+public class LOSLU : IterativeSolver
 {
-    public override void Compute()
+    public LOSLU(int maxIters, double eps) : base(maxIters, eps)
     {
-        try
-        {
-            ArgumentNullException.ThrowIfNull(_matrix, $"{nameof(_matrix)} cannot be null, set the matrix");
-            ArgumentNullException.ThrowIfNull(_vector, $"{nameof(_vector)} cannot be null, set the vector");
-
-            _solution = new(_vector.Length);
-
-            Vector<double> z = new(_vector.Length);
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            var r = _vector - (_matrix * _solution);
-
-            Vector<double>.Copy(r, z);
-
-            var p = _matrix * z;
-
-            var squareNorm = r * r;
-
-            for (int index = 0; index < MaxIters && squareNorm > Eps; index++)
-            {
-                var alpha = p * r / (p * p);
-                _solution += alpha * z;
-                squareNorm = (r * r) - (alpha * alpha * (p * p));
-                r -= alpha * p;
-
-                var tmp = _matrix * r;
-
-                var beta = -(p * tmp) / (p * p);
-                z = r + (beta * z);
-                p = tmp + (beta * p);
-            }
-
-            sw.Stop();
-
-            _runningTime = sw.Elapsed;
-        }
-        catch (ArgumentNullException ex)
-        {
-            Console.WriteLine($"We had problem: {ex.Message}");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"We had problem: {ex.Message}");
-        }
     }
-}
 
-public class LOSLU(int maxIters, double eps) : IterativeSolver(maxIters, eps)
-{
     public override void Compute()
     {
         try
@@ -238,13 +249,13 @@ public class LOSLU(int maxIters, double eps) : IterativeSolver(maxIters, eps)
 
             _solution = new(_vector.Length);
 
-            double[] gglnew = new double[_matrix.Ggl.Length];
-            double[] ggunew = new double[_matrix.Ggu.Length];
+            double[] gglnew = new double[_matrix.GGl.Length];
+            double[] ggunew = new double[_matrix.GGu.Length];
             double[] dinew = new double[_matrix.Di.Length];
 
-            _matrix.Ggl.Copy(gglnew);
-            _matrix.Ggu.Copy(ggunew);
-            _matrix.Di.Copy(dinew);
+            _matrix.GGl.CopyTo(gglnew);
+            _matrix.GGu.CopyTo(ggunew);
+            _matrix.Di.CopyTo(dinew);
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -274,14 +285,9 @@ public class LOSLU(int maxIters, double eps) : IterativeSolver(maxIters, eps)
 
             _runningTime = sw.Elapsed;
         }
-        catch (ArgumentNullException ex)
-        {
-            Console.WriteLine($"We had problem: {ex.Message}");
-            throw;
-        }
         catch (Exception ex)
         {
-            Console.WriteLine($"We had problem: {ex.Message}");
+            Console.WriteLine($"Exception: {ex.Message}");
         }
     }
 }

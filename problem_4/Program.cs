@@ -1,21 +1,22 @@
 ﻿using problem_4;
-using problem_4.BoundaryContext;
 using problem_4.FemContext;
 using problem_4.Mesh;
 
-var meshParameters = MeshParameters.ReadJson("input/MeshParameters.json");
-var meshBuilder = new MeshBuilder(meshParameters);
-var boundaryHandler =
-    new LinearBoundaryHandler(BoundaryConditions.ReadJson("input/BoundaryConditions.json"), meshParameters);
-var mesh = meshBuilder.Build();
-Fem femSolver = Fem.CreateBuilder()
+MeshGenerator meshGenerator = new(new MeshBuilder(MeshParameters.ReadJson("Input/MeshParameters.json")));
+var mesh = meshGenerator.CreateMesh();
+
+double Field(double r, double z) => r * r + z;
+double Source(double r, double z) => -4.0;
+
+FEMBuilder.FEM fem = FEMBuilder.FEM
+    .CreateBuilder()
     .SetMesh(mesh)
-    .SetBoundaryHandler(boundaryHandler)
-    .SetAssembler(new MatrixAssembler(new LinearBasis(), new(Quadratures.SegmentGaussOrder5()), mesh))
-    .SetTest(new Test4())
-    .SetSolver(new LOSLU(1000, 1E-20));
+    .SetBasis(new LinearBasis())
+    .SetSolver(new LOSLU(1000, 1e-20))
+    .SetTest(Source, Field);
 
-femSolver.Compute();
+fem.Solve();
+Console.WriteLine($"Residual: {fem.Residual}");
 
-Console.WriteLine(femSolver.RootMeanSquare());
-Utilities.WriteData(@"C:\Users\lexan\source\repos\SharpPlot\SharpPlot\bin\Release\net7.0-windows", mesh.Points, femSolver.Solution!);
+Utilities.WriteData(@"C:\Users\lexan\source\repos\SharpPlot\SharpPlot\bin\Release\net7.0-windows\", mesh.Points,
+    fem.Solution!);

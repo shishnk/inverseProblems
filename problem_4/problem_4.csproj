@@ -13,10 +13,13 @@
     </ItemGroup>
     
     <ItemGroup>
-      <None Update="input\MeshParameters.json">
+      <None Update="input\ElectroParameters.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="input\BoundaryConditions.json">
+      <None Update="input\MeshParameters.jsonc">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Input\MeshParameters.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
