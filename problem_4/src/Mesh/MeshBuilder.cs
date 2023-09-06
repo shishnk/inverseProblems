@@ -129,7 +129,7 @@ public class MeshBuilder(MeshParameters parameters) : IMeshBuilder
     {
         _elements = new FiniteElement[parameters.AbscissaSplits * parameters.OrdinateSplits];
 
-        int[] nodes = new int[4];
+        Span<int> nodes = stackalloc int[4];
 
         for (int i = 0, ielem = 0; i < parameters.OrdinateSplits; i++)
         {
