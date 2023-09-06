@@ -1,6 +1,6 @@
 ﻿namespace problem_4.Geometry;
 
-public record FiniteElement(IReadOnlyList<int> Nodes)
+public record FiniteElement(IReadOnlyList<int> Nodes, double Material)
 {
-    // TODO : public int LayerNumber { get; set; }
+    public double Material { get; set; } = Material;
 }

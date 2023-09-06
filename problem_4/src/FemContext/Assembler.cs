@@ -7,8 +7,8 @@ public class MatrixAssembler
     private readonly IBasis _basis;
     private readonly Mesh.Mesh _mesh;
     private readonly Integrator _integrator;
-    private readonly Matrix[]? _baseStiffnessMatrix;
-    private readonly Matrix? _baseMassMatrix;
+    private readonly Matrix _baseStiffnessMatrix;
+    private readonly Matrix _baseMassMatrix;
 
     public SparseMatrix? GlobalMatrix { get; set; } // need initialize with portrait builder 
     public Matrix StiffnessMatrix { get; }
@@ -22,15 +22,15 @@ public class MatrixAssembler
         _mesh = mesh;
         StiffnessMatrix = new(_basis.Size);
         MassMatrix = new(_basis.Size);
-        _baseStiffnessMatrix = new Matrix[] { new(_basis.Size) };
+        _baseStiffnessMatrix = new(_basis.Size);
         _baseMassMatrix = new(_basis.Size);
     }
 
     public void BuildLocalMatrices(int ielem)
     {
-        var ri = _mesh.Points[_mesh.Elements[ielem].Nodes.First()].R;
-        var hr = _mesh.Points[_mesh.Elements[ielem].Nodes.Last()].R - ri;
-        
+        var ri = _mesh.Points[_mesh.Elements[ielem].Nodes[0]].R;
+        var hr = _mesh.Points[_mesh.Elements[ielem].Nodes[^1]].R - ri;
+
         var templateElement = new Rectangle(new(0.0, 0.0), new(1.0, 1.0));
 
         for (int i = 0; i < _basis.Size; i++)
@@ -50,15 +50,12 @@ public class MatrixAssembler
                     var vector1 = new Vector<double>(calculates.Reverse.Size) { new[] { dxPhi1, dyPhi1 } };
                     var vector2 = new Vector<double>(calculates.Reverse.Size) { new[] { dxPhi2, dyPhi2 } };
 
-                    // return p.R * calculates.Reverse * vector1 * (calculates.Reverse * vector2) *
-                    //        Math.Abs(calculates.Determinant);
-                    
                     return (ri + hr * p.R) * calculates.Reverse * vector1 * (calculates.Reverse * vector2) *
                            Math.Abs(calculates.Determinant);
                 };
 
-                _baseStiffnessMatrix![0][i, j] =
-                    _baseStiffnessMatrix[0][j, i] = _integrator.Gauss2D(function, templateElement);
+                _baseStiffnessMatrix[i, j] =
+                    _baseStiffnessMatrix[j, i] = _integrator.Gauss2D(function, templateElement);
 
                 function = p =>
                 {
@@ -68,7 +65,7 @@ public class MatrixAssembler
 
                     return (ri + hr * p.R) * fi1 * fi2 * Math.Abs(calculates.Determinant);
                 };
-                _baseMassMatrix![i, j] = _baseMassMatrix[j, i] =
+                _baseMassMatrix[i, j] = _baseMassMatrix[j, i] =
                     _integrator.Gauss2D(function, templateElement);
             }
         }
@@ -77,8 +74,8 @@ public class MatrixAssembler
         {
             for (int j = 0; j <= i; j++)
             {
-                // TODO : change constant to variable
-                StiffnessMatrix[i, j] = StiffnessMatrix[j, i] = 1.0 * _baseStiffnessMatrix![0][i, j];
+                StiffnessMatrix[i, j] = StiffnessMatrix[j, i] =
+                    _mesh.Elements[ielem].Material * _baseStiffnessMatrix[i, j];
             }
         }
 

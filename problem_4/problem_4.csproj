@@ -16,9 +16,6 @@
       <None Update="input\MeshParameters.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="input\BoundaryConditions.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
     
     <ItemGroup>

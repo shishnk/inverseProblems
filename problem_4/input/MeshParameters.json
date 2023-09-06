@@ -1,6 +1,17 @@
 ﻿{
-  "Abscissa interval": "[0.0, 20.0]",
-  "Abscissa splits": 256,
-  "Ordinate interval": "[0.0, 20.0]",
-  "Ordinate splits": 10
+  "Abscissa interval": "[0.0, 3.0]",
+  "Abscissa splits": 80,
+  "Ordinate splits": 80,
+  "Kz": 1.0,
+  "Kr": 1.0,
+  "Layers": [
+    {
+      "Height": 3.0,
+      "Sigma": 1.0
+    }
+  ],
+  "Top border": 1,
+  "Bottom border": 1,
+  "Left border": 1,
+  "Right border": 1
 }

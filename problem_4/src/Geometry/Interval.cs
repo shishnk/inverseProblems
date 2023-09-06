@@ -26,7 +26,7 @@ public class IntervalJsonConverter : JsonConverter
     {
         value ??= new Interval();
         var interval = (Interval)value;
-        serializer.Serialize(writer, interval);
+        writer.WriteRawValue($"\"[{interval.LeftBorder}, {interval.RightBorder}]\"");
     }
 }
 
@@ -41,7 +41,8 @@ public readonly record struct Interval(double LeftBorder, double RightBorder)
     public static bool TryParse(string line, out Interval interval)
     {
         var words = line.Split(new[] { ' ', ',', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length != 2 || !float.TryParse(words[0], CultureInfo.InvariantCulture, out var x) || !float.TryParse(words[1], CultureInfo.InvariantCulture, out var y))
+        if (words.Length != 2 || !float.TryParse(words[0], CultureInfo.InvariantCulture, out var x) ||
+            !float.TryParse(words[1], CultureInfo.InvariantCulture, out var y))
         {
             interval = default;
             return false;
