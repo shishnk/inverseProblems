@@ -30,7 +30,9 @@ public class Point2DJsonConverter : JsonConverter
 }
 
 [JsonConverter(typeof(Point2DJsonConverter))]
-public readonly record struct Point2D(double R, double Z)
+public readonly record struct Point2D(
+    [property: JsonProperty("X", Required = Required.Always)] double R, 
+    [property: JsonProperty("Y", Required = Required.Always)] double Z)
 {
     public override string ToString() => $"{R}, {Z}";
 

@@ -75,17 +75,32 @@ public class Matrix(int size)
 
     public void Clear() => Array.Clear(_storage, 0, _storage.Length);
 
-    public void Copy(Matrix destination)
+    // public void Copy(Matrix destination)
+    // {
+    //     for (int i = 0; i < destination.Size; i++)
+    //     {
+    //         for (int j = 0; j < destination.Size; j++)
+    //         {
+    //             destination[i, j] = _storage[i, j];
+    //         }
+    //     }
+    // }
+
+    public static Matrix Copy(Matrix otherMatrix)
     {
-        for (int i = 0; i < destination.Size; i++)
+        Matrix newMatrix = new(otherMatrix.Size);
+
+        for (int i = 0; i < otherMatrix.Size; i++)
         {
-            for (int j = 0; j < destination.Size; j++)
+            for (int j = 0; j < otherMatrix.Size; j++)
             {
-                destination[i, j] = _storage[i, j];
+                newMatrix[i, j] = otherMatrix[i, j];
             }
         }
-    }
 
+        return newMatrix;
+    }
+    
     public static Matrix operator +(Matrix fstMatrix, Matrix sndMatrix)
     {
         Matrix resultMatrix = new(fstMatrix.Size);

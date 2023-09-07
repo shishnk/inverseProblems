@@ -1,6 +1,4 @@
-﻿using problem_4.BoundaryContext;
-
-namespace problem_4.FemContext;
+﻿namespace problem_4.FemContext;
 
 public class Fem
 {
