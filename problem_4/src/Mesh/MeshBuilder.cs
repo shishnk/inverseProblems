@@ -165,19 +165,19 @@ public class MeshBuilder(MeshParameters parameters) : IMeshBuilder
 
         if (parameters.TopBorder == 1)
         {
-            int startNode = (parameters.AbscissaSplits + 1) * parameters.OrdinateSplits;
-
             for (int i = 0; i < parameters.AbscissaSplits + 1; i++)
             {
-                dirichletNodes.Add(startNode + i);
+                dirichletNodes.Add(i);
             }
         }
 
         if (parameters.BottomBorder == 1)
         {
+            int startNode = (parameters.AbscissaSplits + 1) * parameters.OrdinateSplits;
+
             for (int i = 0; i < parameters.AbscissaSplits + 1; i++)
             {
-                dirichletNodes.Add(i);
+                dirichletNodes.Add(startNode + i);
             }
         }
 
@@ -201,7 +201,7 @@ public class MeshBuilder(MeshParameters parameters) : IMeshBuilder
 
         for (int i = 0; i < dirichletNodes.Count; i++)
         {
-            yield return new(array[i], 0.0);
+            yield return new DirichletBoundary(array[i], 0.0);
         }
     }
 }

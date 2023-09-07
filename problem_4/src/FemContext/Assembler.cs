@@ -14,6 +14,7 @@ public class MatrixAssembler
     public Matrix StiffnessMatrix { get; }
     public Matrix MassMatrix { get; }
     public int BasisSize => _basis.Size;
+    public IBasis Basis => _basis;
 
     public MatrixAssembler(IBasis basis, Integrator integrator, Mesh.Mesh mesh)
     {

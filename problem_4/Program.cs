@@ -10,11 +10,13 @@ MeshTransformer.ChangeLayers(mesh, parameters.Layers[0].Height);
 Fem femSolver = Fem.CreateBuilder()
     .SetMesh(mesh)
     .SetAssembler(new MatrixAssembler(new LinearBasis(), new Integrator(Quadratures.SegmentGaussOrder5()), mesh))
-    .SetTest(new Test4())
+    .SetTest(new PracticeTask())
     .SetSolver(new LOSLU(1000, 1E-20));
 
 femSolver.Compute();
 Console.WriteLine(femSolver.RootMeanSquare());
+// Utilities.WriteData(".", mesh.Points, femSolver.Solution!);
+
 
 var electroParameters = ElectroParameters.ReadJson("input/ElectroParameters.json");
 var electroExploration = ElectroExplorationBuilder.GetInstance()
@@ -23,5 +25,7 @@ var electroExploration = ElectroExplorationBuilder.GetInstance()
     .SetFEM(femSolver)
     .SetSolver(new Gauss())
     .CreateElectroSolver();
-    
+
+Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+electroExploration.TestFile = "1";
 electroExploration.Solve();

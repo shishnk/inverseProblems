@@ -37,3 +37,9 @@ public class Test4 : ITest
 
     public double F(Point2D point) => -9.0 * point.R;
 }
+
+public class PracticeTask : ITest
+{
+    public double U(Point2D point) => 0.0;
+    public double F(Point2D point) => 0.0;
+}

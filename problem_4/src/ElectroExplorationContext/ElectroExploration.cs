@@ -1,4 +1,6 @@
 ﻿using problem_4.FemContext;
+using problem_4.Geometry;
+using problem_4.Mesh;
 
 namespace problem_4.ElectroExplorationContext;
 
@@ -20,11 +22,18 @@ public class ElectroExplorationBuilder
         private readonly Fem _fem;
         private readonly double _current;
 
-        private const double DeltaSigma = 1E-2;
-        private double _alphaRegulator = 1E-12;
+        // private double _alphaRegulator = 1E-12;
+        private const double MaxDifferencePercent = 0.05;
+        private const double IncreasePercent = 0.05;
+        private const int ParametersCount = 1;
 
+        private double _prevFunctional;
+        private double _currentFunctional;
         public double Functional { get; private set; }
 
+        private const string PathForTests = ".";
+        public string TestFile { get; set; } = "1";
+        
         public ElectroExploration(ElectroParameters parameters, Mesh.Mesh mesh, Fem fem, DirectSolver solver)
         {
             _current = 1.0;
@@ -49,40 +58,31 @@ public class ElectroExplorationBuilder
             var source = _parameters.PowerSources![0];
             var receiver = _parameters.PowerReceivers![ireciever];
 
-            // TODO
-            // double rAM = Point2D.Distance(source.A, receiver.M);
-            // double rBM = Point2D.Distance(source.B, receiver.M);
-            // double VrAM = (int)ElectrodType.ElectrodA * _current * _fem.ValueAtPoint(new(rAM, _mesh.Points[0].Z));
-            // double VrBM = (int)ElectrodType.ElectrodB * _current * _fem.ValueAtPoint(new(rBM, _mesh.Points[0].Z));
-            //
-            // double rAN = Point2D.Distance(source.A, receiver.N);
-            // double rBN = Point2D.Distance(source.B, receiver.N);
-            // double VrAN = (int)ElectrodType.ElectrodA * _current * _fem.ValueAtPoint(new(rAN, _mesh.Points[0].Z));
-            // double VrBN = (int)ElectrodType.ElectrodB * _current * _fem.ValueAtPoint(new(rBN, _mesh.Points[0].Z));
-            //
-            // return VrAM + VrBM - (VrAN + VrBN);
-
-            return 0.0;
+            double rAm = Point2D.Distance(source.A, receiver.M);
+            double rAn = Point2D.Distance(source.A, receiver.N);
+            double vrAm = _current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAm, _mesh.Points[0].Z));
+            double vrAn = _current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAn, _mesh.Points[0].Z));
+            
+            return vrAm - vrAn;
         }
 
         private void CalcDiffs()
         {
-            // TODO
+            for (int i = 0; i < ParametersCount; i++)
+            {
+                for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
+                {
+                    double deltaHeight = IncreasePercent * _height1; 
+                    _height1 += deltaHeight;
+                    
+                    MeshTransformer.ChangeLayers(_mesh, _height1);
+                    
+                    _fem.Compute();
+                    _height1 -= deltaHeight;
             
-            // for (int i = 0; i < 1; i++)
-            // {
-            //     for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
-            //     {
-            //         _height1 += DeltaSigma;
-            //
-            //         _fem.UpdateMesh(_sigmas);
-            //         _fem.Solve();
-            //
-            //         _sigmas[i] -= DeltaSigma;
-            //
-            //         _potentialsDiffs[i, j] = (Potential(j) - _currentPotentials[j]) / DeltaSigma;
-            //     }
-            // }
+                    _potentialsDiffs[i][j] = (Potential(j) - _currentPotentials[j]) / deltaHeight;
+                }
+            }
         }
 
         private void AssemblySystem()
@@ -92,9 +92,9 @@ public class ElectroExplorationBuilder
             _matrix.Clear();
             _vector.Fill(0.0);
 
-            for (int q = 0; q < 1; q++)
+            for (int q = 0; q < ParametersCount; q++)
             {
-                for (int s = 0; s < 1; s++)
+                for (int s = 0; s < ParametersCount; s++)
                 {
                     for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                     {
@@ -109,7 +109,7 @@ public class ElectroExplorationBuilder
                 for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                 {
                     double w = 1.0 / _potentials[i];
-
+                    
                     _vector[q] -= w * w * _potentialsDiffs[q][i] * (_currentPotentials[i] - _potentials[i]);
                 }
             }
@@ -122,7 +122,6 @@ public class ElectroExplorationBuilder
                 _potentials[i] = Potential(i);
             }
 
-            // Добавляем шумы
             for (int i = 0; i < _potentials.Length; i++)
             {
                 _potentials[i] += _parameters.Noise!.Value * _potentials[i];
@@ -131,26 +130,32 @@ public class ElectroExplorationBuilder
 
         private double InverseProblem()
         {
+            var sw = new StreamWriter($"{PathForTests}/{TestFile}.csv");
             const double eps = 1E-7;
 
-            // TODO
-            // _fem.UpdateMesh(_sigmas);
-            // _fem.Solve();
+            MeshTransformer.ChangeLayers(_mesh, _height1);
+            _fem.Compute();
 
             for (int i = 0; i < _currentPotentials.Length; i++)
             {
                 _currentPotentials[i] = Potential(i);
             }
 
-            double functional = CalculateFunctional(_currentPotentials.ToArray());
+            double functional = CalculateFunctional(_currentPotentials);
+            _prevFunctional = functional;
 
-            int iters = 0;
+            int iter = 0;
 
-            while (functional >= eps && iters < 500)
+            while (functional >= eps && iter < 500)
             {
-                Console.WriteLine($"Iter: {iters},  Functional: {functional}, Height1: {_height1}");
-
-                iters++;
+                if (iter == 0)
+                {
+                    sw.WriteLine("Iter,Functional,Height1");
+                    Console.WriteLine($"{"Iter",5} {"Functional", 10} {"Height", 10}");
+                }
+                
+                sw.WriteLine($"{iter},{functional},{_height1}");
+                Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
 
                 AssemblySystem();
 
@@ -163,22 +168,35 @@ public class ElectroExplorationBuilder
 
                 _height1 += _solver.Solution!.Value[0];
 
-                // TODO
-                // _fem.UpdateMesh(_sigmas);
-                // _fem.Solve();
+                MeshTransformer.ChangeLayers(_mesh, _height1);
+                _fem.Compute();
 
                 for (int i = 0; i < _currentPotentials.Length; i++)
                 {
                     _currentPotentials[i] = Potential(i);
                 }
 
-                functional = CalculateFunctional(_currentPotentials.ToArray());
+                _currentFunctional = CalculateFunctional(_currentPotentials);
+                
+                double frac = Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional);
+                if (Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional) >=
+                    MaxDifferencePercent)
+                {
+                    functional = _currentFunctional;
+                    _prevFunctional = functional;
+                    iter++;
+                }
+                else break;
             }
+            
+            sw.WriteLine($"{iter},{functional},{_height1}");
+            sw.Close();
+            Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
 
             return functional;
         }
 
-        private double CalculateFunctional(double[] currentPotentials)
+        private double CalculateFunctional(Vector<double> currentPotentials)
         {
             double functional = 0.0;
 
@@ -191,29 +209,29 @@ public class ElectroExplorationBuilder
             return functional;
         }
 
-        private void Regularization()
-        {
-            double prevAlpha = 0.0;
-
-            while (!_solver.IsSolved())
-            {
-                for (int i = 0; i < _matrix.Size; i++)
-                {
-                    _matrix[i, i] -= prevAlpha;
-                    _matrix[i, i] += _alphaRegulator;
-
-                    _vector[i] += prevAlpha * (_potentials[i] - _currentPotentials[i]);
-                    _vector[i] -= _alphaRegulator * (_potentials[i] - _currentPotentials[i]);
-
-                    prevAlpha = _alphaRegulator;
-                    _alphaRegulator *= 10.0;
-                }
-
-                _solver.SetMatrix(_matrix);
-                _solver.SetVector(_vector);
-                _solver.Compute();
-            }
-        }
+        // private void Regularization()
+        // {
+        //     double prevAlpha = 0.0;
+        //
+        //     while (!_solver.IsSolved())
+        //     {
+        //         for (int i = 0; i < _matrix.Size; i++)
+        //         {
+        //             _matrix[i, i] -= prevAlpha;
+        //             _matrix[i, i] += _alphaRegulator;
+        //
+        //             _vector[i] += prevAlpha * (_potentials[i] - _currentPotentials[i]);
+        //             _vector[i] -= _alphaRegulator * (_potentials[i] - _currentPotentials[i]);
+        //
+        //             prevAlpha = _alphaRegulator;
+        //             _alphaRegulator *= 10.0;
+        //         }
+        //
+        //         _solver.SetMatrix(_matrix);
+        //         _solver.SetVector(_vector);
+        //         _solver.Compute();
+        //     }
+        // }
 
         public void Solve()
         {

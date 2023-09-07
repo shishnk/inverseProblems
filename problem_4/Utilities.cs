@@ -29,4 +29,16 @@ public static class Utilities
 
         sw.Close();
     }
+    
+    public static void WritePoints(string path, IEnumerable<Point2D> pointsCollection)
+    {
+        var points = pointsCollection.ToArray();
+
+        var sw = new StreamWriter($"{path}/points");
+        foreach (var p in points)
+        {
+            sw.WriteLine($"{p.R} {p.Z}", CultureInfo.InvariantCulture);
+        }
+        sw.Close();
+    }
 }

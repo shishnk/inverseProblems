@@ -1,4 +1,6 @@
-﻿namespace problem_4.FemContext;
+﻿using problem_4.Geometry;
+
+namespace problem_4.FemContext;
 
 public class Fem
 {
@@ -46,9 +48,8 @@ public class Fem
     {
         Initialize();
         AssemblySystem();
-        // _assembler.GlobalMatrix.PrintDense("matrix4");
         AccountingDirichletBoundary();
-        // _assembler.GlobalMatrix.PrintDense("matrixDirichlet4");
+        // _assembler.GlobalMatrix!.PrintDense("matrixDirichlet");
 
         _solver.SetMatrixEx(_assembler.GlobalMatrix!).SetVectorEx(_globalVector).Compute();
     }
@@ -158,6 +159,8 @@ public class Fem
                 }
             }
         }
+
+        _globalVector[0] = 1.0;
     }
 
     public double RootMeanSquare()
@@ -180,5 +183,55 @@ public class Fem
         }
 
         return Math.Sqrt(error / _mesh.Points.Count);
+    }
+    
+    private int FindElem(Point2D point)
+    {
+        for (int i = 0; i < _mesh.Elements.Count; i++)
+        {
+            var nodes = _mesh.Elements[i].Nodes;
+
+            var leftBottom = _mesh.Points[nodes[0]];
+            var rightTop = _mesh.Points[nodes[_assembler.BasisSize - 1]];
+
+            if (leftBottom.R <= point.R && point.R <= rightTop.R &&
+                leftBottom.Z <= point.Z && point.Z <= rightTop.Z)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public double ValueAtPoint(Point2D point)
+    {
+        double value = 0.0;
+
+        try
+        {
+            int ielem = FindElem(point);
+
+            if (ielem == -1)
+                throw new ArgumentException(nameof(point), $"Not expected point value: {point}");
+
+            var nodes = _mesh.Elements[ielem].Nodes;
+            var leftBottom = _mesh.Points[nodes[0]];
+            var rightTop = _mesh.Points[nodes[_assembler.BasisSize - 1]];
+
+            double ksi = (point.R - leftBottom.R) / (rightTop.R - leftBottom.R);
+            double eta = (point.Z - leftBottom.Z) / (rightTop.Z - leftBottom.Z);
+
+            for (int i = 0; i < _assembler.BasisSize; i++)
+            {
+                value += _solver.Solution!.Value[nodes[i]] * _assembler.Basis.GetPsi(i, new Point2D(ksi, eta));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+
+        return value;
     }
 }
