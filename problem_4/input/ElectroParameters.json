@@ -29,6 +29,8 @@
       }
     }
   ],
-  "Primary height1": 10,
-  "Noise": 0
+  "Parameter name": "I",
+  "Primary height1": 5,
+  "Receivers to noise" : [],
+  "Noise": 0.01
 }

@@ -18,9 +18,10 @@ public class ElectroExplorationBuilder
         private readonly Matrix _matrix;
         private readonly Vector<double> _vector;
         private double _height1;
+        private const double RealCurrent = 10.0;
+        private double _current;
         private readonly Mesh.Mesh _mesh;
         private readonly Fem _fem;
-        private readonly double _current;
 
         // private double _alphaRegulator = 1E-12;
         private const double MaxDifferencePercent = 0.05;
@@ -43,7 +44,13 @@ public class ElectroExplorationBuilder
             _fem = fem;
             _mesh = mesh;
 
-            _height1 = _parameters.PrimaryHeight1!.Value;
+            if (_parameters.ParameterName == "H")
+            {
+                _height1 = _parameters.PrimaryHeight1!.Value;
+                _current = RealCurrent;
+            }
+            else
+                _current = _parameters.PrimaryHeight1!.Value;
 
             _matrix = new(1);
             _vector = new(1);
@@ -53,15 +60,15 @@ public class ElectroExplorationBuilder
             _potentialsDiffs = new double[1].Select(_ => new double[_parameters.PowerReceivers.Length]).ToArray();
         }
 
-        private double Potential(int ireciever)
+        private double Potential(int ireciever, double current)
         {
             var source = _parameters.PowerSources![0];
             var receiver = _parameters.PowerReceivers![ireciever];
 
             double rAm = Point2D.Distance(source.A, receiver.M);
             double rAn = Point2D.Distance(source.A, receiver.N);
-            double vrAm = _current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAm, _mesh.Points[0].Z));
-            double vrAn = _current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAn, _mesh.Points[0].Z));
+            double vrAm = current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAm, _mesh.Points[0].Z)) * current;
+            double vrAn = current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAn, _mesh.Points[0].Z)) * current;
             
             return vrAm - vrAn;
         }
@@ -72,15 +79,30 @@ public class ElectroExplorationBuilder
             {
                 for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
                 {
-                    double deltaHeight = IncreasePercent * _height1; 
-                    _height1 += deltaHeight;
+                    if (_parameters.ParameterName == "H")
+                    {
+                        double deltaHeight = IncreasePercent * _height1; 
+                        _height1 += deltaHeight;
                     
-                    MeshTransformer.ChangeLayers(_mesh, _height1);
+                        MeshTransformer.ChangeLayers(_mesh, _height1);
                     
-                    _fem.Compute();
-                    _height1 -= deltaHeight;
+                        _fem.Compute();
+                        _height1 -= deltaHeight;
             
-                    _potentialsDiffs[i][j] = (Potential(j) - _currentPotentials[j]) / deltaHeight;
+                        _potentialsDiffs[i][j] = (Potential(j, _current) - _currentPotentials[j]) / deltaHeight;   
+                    }
+                    else // if "I"
+                    {
+                        double deltaCurrent = IncreasePercent * _current;
+
+                        _current += deltaCurrent;
+                        // _fem.Current = _current;
+                        // _fem.Compute();
+            
+                        _potentialsDiffs[i][j] = (Potential(j, _current) - _currentPotentials[j]) / deltaCurrent;
+
+                        _current -= deltaCurrent;
+                    }
                 }
             }
         }
@@ -119,12 +141,12 @@ public class ElectroExplorationBuilder
         {
             for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
             {
-                _potentials[i] = Potential(i);
+                _potentials[i] = Potential(i, RealCurrent);
             }
 
-            for (int i = 0; i < _potentials.Length; i++)
+            foreach (var ireceiver in _parameters.ReceiversToNoise!)
             {
-                _potentials[i] += _parameters.Noise!.Value * _potentials[i];
+                _potentials[ireceiver] += _parameters.Noise!.Value * _potentials[ireceiver];
             }
         }
 
@@ -133,12 +155,19 @@ public class ElectroExplorationBuilder
             var sw = new StreamWriter($"{PathForTests}/{TestFile}.csv");
             const double eps = 1E-7;
 
-            MeshTransformer.ChangeLayers(_mesh, _height1);
-            _fem.Compute();
+            if (_parameters.ParameterName == "H")
+            {
+                MeshTransformer.ChangeLayers(_mesh, _height1);
+                _fem.Compute();
+            }
+            // else
+            // {
+            //     _fem.Current = _current;
+            // }
 
             for (int i = 0; i < _currentPotentials.Length; i++)
             {
-                _currentPotentials[i] = Potential(i);
+                _currentPotentials[i] = Potential(i, _current);
             }
 
             double functional = CalculateFunctional(_currentPotentials);
@@ -150,12 +179,28 @@ public class ElectroExplorationBuilder
             {
                 if (iter == 0)
                 {
-                    sw.WriteLine("Iter,Functional,Height1");
-                    Console.WriteLine($"{"Iter",5} {"Functional", 10} {"Height", 10}");
+                    if (_parameters.ParameterName == "H")
+                    {
+                        sw.WriteLine("Iter,Functional,Height1");
+                        Console.WriteLine($"{"Iter",5} {"Functional", 10} {"Height", 10}");
+                    }
+                    else
+                    {
+                        sw.WriteLine("Iter,Functional,I");
+                        Console.WriteLine($"{"Iter",5} {"Functional", 10} {"I", 10}");
+                    }
                 }
                 
-                sw.WriteLine($"{iter},{functional},{_height1}");
-                Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
+                if (_parameters.ParameterName == "H")
+                {
+                    sw.WriteLine($"{iter},{functional},{_height1}");
+                    Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
+                }
+                else
+                {
+                    sw.WriteLine($"{iter},{functional},{_current}");
+                    Console.WriteLine($"{iter,5} {functional:E7} {_current:G10}");
+                }
 
                 AssemblySystem();
 
@@ -163,24 +208,29 @@ public class ElectroExplorationBuilder
                 _solver.SetVector(_vector);
                 _solver.Compute();
 
-                // По идее не нужна, т.к. всего 1 элемент в матрице
                 // Regularization();
 
-                _height1 += _solver.Solution!.Value[0];
-
-                MeshTransformer.ChangeLayers(_mesh, _height1);
-                _fem.Compute();
+                if (_parameters.ParameterName == "H")
+                {
+                    _height1 += _solver.Solution!.Value[0];
+                    MeshTransformer.ChangeLayers(_mesh, _height1);
+                    _fem.Compute();
+                }
+                else
+                {
+                    _current += _solver.Solution!.Value[0];
+                    // _fem.Current = _current;
+                }
 
                 for (int i = 0; i < _currentPotentials.Length; i++)
                 {
-                    _currentPotentials[i] = Potential(i);
+                    _currentPotentials[i] = Potential(i, _current);
                 }
 
                 _currentFunctional = CalculateFunctional(_currentPotentials);
                 
                 double frac = Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional);
-                if (Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional) >=
-                    MaxDifferencePercent)
+                if (frac >= MaxDifferencePercent)
                 {
                     functional = _currentFunctional;
                     _prevFunctional = functional;
@@ -189,9 +239,18 @@ public class ElectroExplorationBuilder
                 else break;
             }
             
-            sw.WriteLine($"{iter},{functional},{_height1}");
-            sw.Close();
-            Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
+            if (_parameters.ParameterName == "H")
+            {
+                sw.WriteLine($"{iter},{functional},{_height1}");
+                sw.Close();
+                Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
+            }
+            else
+            {
+                sw.WriteLine($"{iter},{functional},{_current}");
+                sw.Close();
+                Console.WriteLine($"{iter,5} {functional:E7} {_current:G10}");
+            }
 
             return functional;
         }

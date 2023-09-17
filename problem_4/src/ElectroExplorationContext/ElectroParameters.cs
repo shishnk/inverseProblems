@@ -15,6 +15,12 @@ public class ElectroParameters
     [JsonProperty("Power receivers", Required = Required.Always)]
     public PowerReceiver[]? PowerReceivers { get; init; }
 
+    [JsonProperty("Parameter name", Required = Required.Always)]
+    public string? ParameterName { get; init; }
+    
+    [JsonProperty("Receivers to noise", Required = Required.Always)]
+    public int[]? ReceiversToNoise { get; init; }
+    
     [JsonProperty("Primary height1", Required = Required.Always)]
     public double? PrimaryHeight1 { get; init; }
 

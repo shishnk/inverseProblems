@@ -42,6 +42,8 @@ public class Fem
     private Vector<double> _localVector = default!;
     private Vector<double> _globalVector = default!;
 
+    public double Current { get; set; } = 1.0;
+
     public double[]? Solution => _solver.Solution?.ToArray();
 
     public void Compute()
@@ -107,13 +109,6 @@ public class Fem
 
     private void AccountingDirichletBoundary()
     {
-        // foreach (var dirichlet in _boundaryHandler.Process())
-        // {
-        //     var point = _mesh.Points[dirichlet.Node];
-        //
-        //     _assembler.GlobalMatrix!.Di[dirichlet.Node] = 1E+32;
-        //     _globalVector[dirichlet.Node] = _test.U(point) * 1E+32;
-        // }
         Span<int> checkBc = stackalloc int[_mesh.Points.Count];
 
         checkBc.Fill(-1);
@@ -160,7 +155,7 @@ public class Fem
             }
         }
 
-        _globalVector[0] = 1.0;
+        _globalVector[0] = Current;
     }
 
     public double RootMeanSquare()
