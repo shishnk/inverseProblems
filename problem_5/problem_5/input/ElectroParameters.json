@@ -1,0 +1,36 @@
+﻿{
+  "Power sources": [
+    {
+      "A": {
+        "X": 10.0,
+        "Y": 10.0
+      }
+    }
+  ],
+  "Power receivers": [
+    {
+      "M": {
+        "X": 200.0,
+        "Y": 1.0
+      },
+      "N": {
+        "X": 300.0,
+        "Y": 1.0
+      }
+    },
+    {
+      "M": {
+        "X": 500.0,
+        "Y": 2.0
+      },
+      "N": {
+        "X": 600.0,
+        "Y": 2.0
+      }
+    }
+  ],
+  "Parameter name": "I",
+  "Primary height1": 5,
+  "Receivers to noise" : [],
+  "Noise": 0.01
+}
