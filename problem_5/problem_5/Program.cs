@@ -1,7 +1,6 @@
-﻿using problem_4.ElectroExplorationContext;
-using problem_4.FemContext;
-using problem_4.Mesh;
-using problem_5.ElectroExplorationContext;
+﻿using problem_5.ElectroExplorationContext;
+using problem_5.FemContext;
+using problem_5.Mesh;
 
 var parameters = MeshParameters.ReadJson("input/MeshParameters.json");
 MeshGenerator meshGenerator = new(new MeshBuilder(parameters));
@@ -16,17 +15,22 @@ Fem femSolver = Fem.CreateBuilder()
 
 femSolver.Compute();
 Console.WriteLine(femSolver.RootMeanSquare());
-// Utilities.WriteData(".", mesh.Points, femSolver.Solution!);
-
-
-var electroParameters = ElectroParameters.ReadJson("input/ElectroParameters.json");
-var electroExploration = ElectroExplorationBuilder.GetInstance()
-    .SetParameters(electroParameters)
-    .SetMesh(mesh)
-    .SetFEM(femSolver)
-    .SetSolver(new Gauss())
-    .CreateElectroSolver();
 
 Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-electroExploration.TestFile = "1";
-electroExploration.Solve();
+var alphas = new[] { 1e-12, 1e-08, 1e-06, 1e-3 };
+var sw = new StreamWriter("3.csv");
+sw.WriteLine(",п1,п2,п3,п4,п5,п6,п7,п8,п9,п10,F,");
+
+foreach (var a in alphas)
+{
+    var electroParameters = ElectroParameters.ReadJson("input/ElectroParameters.json");
+    var electroExploration = ElectroExplorationBuilder.GetInstance()
+        .SetParameters(electroParameters)
+        .SetMesh(mesh)
+        .SetFEM(femSolver)
+        .SetSolver(new Gauss())
+        .CreateElectroSolver();
+    electroExploration.AlphaRegulator = a;
+    electroExploration.Solve(ref sw);
+}
+sw.Close();

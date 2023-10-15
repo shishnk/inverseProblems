@@ -1,4 +1,4 @@
-﻿namespace problem_4.FemContext;
+﻿namespace problem_5.FemContext;
 
 public class SparseMatrix(int size, int sizeOffDiag)
 {

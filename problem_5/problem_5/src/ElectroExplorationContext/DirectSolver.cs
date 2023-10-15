@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using problem_4.FemContext;
+using problem_5.FemContext;
 
-namespace problem_4.ElectroExplorationContext;
+namespace problem_5.ElectroExplorationContext;
 
 public abstract class DirectSolver
 {

@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace problem_4.Geometry;
+namespace problem_5.Geometry;
 
 public class IntervalJsonConverter : JsonConverter
 {

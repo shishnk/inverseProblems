@@ -1,4 +1,4 @@
-﻿namespace problem_4.FemContext;
+﻿namespace problem_5.FemContext;
 
 public class QuadratureNode<T>(T node, double weight)
     where T : notnull

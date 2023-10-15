@@ -1,4 +1,4 @@
-﻿namespace problem_4.Geometry;
+﻿namespace problem_5.Geometry;
 
 public readonly record struct Rectangle(Point2D LeftBottom, Point2D RightTop)
 {

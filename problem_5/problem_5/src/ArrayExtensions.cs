@@ -1,4 +1,4 @@
-﻿namespace problem_4;
+﻿namespace problem_5;
 
 public static class ArrayExtensions
 {

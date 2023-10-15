@@ -1,6 +1,6 @@
-﻿using problem_4.Geometry;
+﻿using problem_5.Geometry;
 
-namespace problem_4.FemContext;
+namespace problem_5.FemContext;
 
 public class Fem
 {
@@ -8,7 +8,7 @@ public class Fem
     {
         private readonly Fem _fem = new();
 
-        public FemBuilder SetMesh(Mesh.Mesh mesh)
+        public FemBuilder SetMesh(problem_5.Mesh.Mesh mesh)
         {
             _fem._mesh = mesh;
             return this;
@@ -35,7 +35,7 @@ public class Fem
         public static implicit operator Fem(FemBuilder builder) => builder._fem;
     }
 
-    private Mesh.Mesh _mesh = default!;
+    private problem_5.Mesh.Mesh _mesh = default!;
     private MatrixAssembler _assembler = default!;
     private ITest _test = default!;
     private IterativeSolver _solver = default!;

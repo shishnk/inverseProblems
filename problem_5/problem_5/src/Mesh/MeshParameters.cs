@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
-using problem_4.Geometry;
+using problem_5.Geometry;
 
-namespace problem_4.Mesh;
+namespace problem_5.Mesh;
 
 public class MeshParameters(Interval abscissaInterval, int abscissaSplits, double kr,
     int ordinateSplits, double kz, IEnumerable<Layer> layers, byte topBorder,

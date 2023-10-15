@@ -1,8 +1,8 @@
-﻿namespace problem_4.FemContext;
+﻿namespace problem_5.FemContext;
 
 public static class PortraitBuilder
 {
-    public static void Build(Mesh.Mesh mesh, out int[] ig, out int[] jg)
+    public static void Build(problem_5.Mesh.Mesh mesh, out int[] ig, out int[] jg)
     {
         var connectivityList = new List<HashSet<int>>();
 

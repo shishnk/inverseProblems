@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using problem_4.Geometry;
+using problem_5.Geometry;
 
 namespace problem_5.ElectroExplorationContext;
 
@@ -15,14 +15,11 @@ public class ElectroParameters
     [JsonProperty("Power receivers", Required = Required.Always)]
     public PowerReceiver[]? PowerReceivers { get; init; }
 
-    [JsonProperty("Parameter name", Required = Required.Always)]
-    public string? ParameterName { get; init; }
-    
     [JsonProperty("Receivers to noise", Required = Required.Always)]
     public int[]? ReceiversToNoise { get; init; }
     
-    [JsonProperty("Primary height1", Required = Required.Always)]
-    public double? PrimaryHeight1 { get; init; }
+    [JsonProperty("Primary currents", Required = Required.Always)]
+    public double[]? PrimaryCurrents { get; init; }
 
     [JsonProperty("Noise", Required = Required.Always)]
     public double? Noise { get; init; }

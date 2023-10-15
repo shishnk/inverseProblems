@@ -1,9 +1,7 @@
-﻿using problem_4.FemContext;
-using problem_4.Geometry;
-using problem_4.Mesh;
-using problem_5.ElectroExplorationContext;
+﻿using problem_5.FemContext;
+using problem_5.Geometry;
 
-namespace problem_4.ElectroExplorationContext;
+namespace problem_5.ElectroExplorationContext;
 
 public class ElectroExplorationBuilder
 {
@@ -11,6 +9,7 @@ public class ElectroExplorationBuilder
     
     public class ElectroExploration
     {
+        // Fields
         private readonly ElectroParameters _parameters;
         private readonly DirectSolver _solver;
         private readonly Vector<double> _potentials;
@@ -18,159 +17,105 @@ public class ElectroExplorationBuilder
         private readonly double[][] _potentialsDiffs;
         private readonly Matrix _matrix;
         private readonly Vector<double> _vector;
-        private double _height1;
-        private const double RealCurrent = 10.0;
-        private double _current;
+        private readonly double[] _currents;
         private readonly Mesh.Mesh _mesh;
         private readonly Fem _fem;
-
-        // private double _alphaRegulator = 1E-12;
-        private const double MaxDifferencePercent = 0.05;
-        private const double IncreasePercent = 0.05;
-        private const int ParametersCount = 1;
-
+        public double AlphaRegulator;
+        private double _beta = 1.0;
         private double _prevFunctional;
         private double _currentFunctional;
-        public double Functional { get; private set; }
-
-        private const string PathForTests = ".";
-        public string TestFile { get; set; } = "1";
+        private readonly int _parametersCount;
         
+        // Constants
+        private const int EnabledSourceIndex = 1;
+        private const double RealCurrent = 10.0;
+        private const double MaxDifferencePercent = 1;
+        
+        // Properties
+
         public ElectroExploration(ElectroParameters parameters, Mesh.Mesh mesh, Fem fem, DirectSolver solver)
         {
-            _current = 1.0;
-
             _parameters = parameters;
             _solver = solver;
             _fem = fem;
             _mesh = mesh;
+            _currents = _parameters.PrimaryCurrents!;
 
-            if (_parameters.ParameterName == "H")
-            {
-                _height1 = _parameters.PrimaryHeight1!.Value;
-                _current = RealCurrent;
-            }
-            else
-                _current = _parameters.PrimaryHeight1!.Value;
+            _parametersCount = _currents.Length;
+            _matrix = new Matrix(_parametersCount);
+            _vector = new Vector<double>(_parametersCount);
 
-            _matrix = new(1);
-            _vector = new(1);
-
-            _potentials = new(_parameters.PowerReceivers!.Length);
-            _currentPotentials = new(_parameters.PowerReceivers.Length);
-            _potentialsDiffs = new double[1].Select(_ => new double[_parameters.PowerReceivers.Length]).ToArray();
+            _potentials = new Vector<double>(_parameters.PowerReceivers!.Length);
+            _currentPotentials = new Vector<double>(_parameters.PowerReceivers.Length);
+            _potentialsDiffs = new double[_parametersCount].Select(_ => new double[_parameters.PowerReceivers.Length]).ToArray();
         }
 
-        private double Potential(int ireciever, double current)
+        private double Potential(int isource, int ireciever, double current)
         {
-            var source = _parameters.PowerSources![0];
+            var source = _parameters.PowerSources![isource];
             var receiver = _parameters.PowerReceivers![ireciever];
 
             double rAm = Point2D.Distance(source.A, receiver.M);
             double rAn = Point2D.Distance(source.A, receiver.N);
-            double vrAm = current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAm, _mesh.Points[0].Z)) * current;
-            double vrAn = current / (2 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAn, _mesh.Points[0].Z)) * current;
+            double vrAm = current / (2.0 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAm, 0.0));
+            double vrAn = current / (2.0 * Math.PI) * _fem.ValueAtPoint(new Point2D(rAn, 0.0));
             
             return vrAm - vrAn;
         }
 
-        private void CalcDiffs()
-        {
-            for (int i = 0; i < ParametersCount; i++)
-            {
-                for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
-                {
-                    if (_parameters.ParameterName == "H")
-                    {
-                        double deltaHeight = IncreasePercent * _height1; 
-                        _height1 += deltaHeight;
-                    
-                        MeshTransformer.ChangeLayers(_mesh, _height1);
-                    
-                        _fem.Compute();
-                        _height1 -= deltaHeight;
-            
-                        _potentialsDiffs[i][j] = (Potential(j, _current) - _currentPotentials[j]) / deltaHeight;   
-                    }
-                    else // if "I"
-                    {
-                        double deltaCurrent = IncreasePercent * _current;
-
-                        _current += deltaCurrent;
-                        // _fem.Current = _current;
-                        // _fem.Compute();
-            
-                        _potentialsDiffs[i][j] = (Potential(j, _current) - _currentPotentials[j]) / deltaCurrent;
-
-                        _current -= deltaCurrent;
-                    }
-                }
-            }
-        }
-
         private void AssemblySystem()
         {
-            CalcDiffs();
-
             _matrix.Clear();
             _vector.Fill(0.0);
 
-            for (int q = 0; q < ParametersCount; q++)
+            for (int q = 0; q < _parameters.PowerSources!.Length; q++)
             {
-                for (int s = 0; s < ParametersCount; s++)
+                for (int s = 0; s < _parameters.PowerSources.Length; s++)
                 {
                     for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                     {
-                        double diffQ = _potentialsDiffs[q][i];
-                        double diffS = _potentialsDiffs[s][i];
                         double w = 1.0 / _potentials[i];
 
-                        _matrix[q, s] += w * w * diffQ * diffS;
+                        _matrix[q, s] += w * w * _potentialsDiffs[q][i] * _potentialsDiffs[s][i];
                     }
                 }
 
                 for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                 {
                     double w = 1.0 / _potentials[i];
-                    
+
                     _vector[q] -= w * w * _potentialsDiffs[q][i] * (_currentPotentials[i] - _potentials[i]);
                 }
             }
         }
 
-        private void DirectProblem()
+        private void DataGeneration()
         {
-            for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
+            for (int i = 0; i < _parametersCount; i++)
             {
-                _potentials[i] = Potential(i, RealCurrent);
+                for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
+                {
+                    // double rAm = Point2D.Distance(_parameters.PowerSources![i].A, _parameters.PowerReceivers![j].M);
+                    // double rAn = Point2D.Distance(_parameters.PowerSources![i].A, _parameters.PowerReceivers![j].N);
+                    // _potentialsDiffs[i][j] = 1.0 / (2.0 * Math.PI * firstLayerSigma) * (1.0 / rAm - 1.0 / rAn);
+                    _potentialsDiffs[i][j] = Potential(i, j, 1.0);
+                    _potentials[j] += _potentialsDiffs[i][j] * (i == EnabledSourceIndex ? RealCurrent : 0.0);
+                    _currentPotentials[j] += _potentialsDiffs[i][j] * _currents[i];
+                }
             }
-
+            
             foreach (var ireceiver in _parameters.ReceiversToNoise!)
             {
                 _potentials[ireceiver] += _parameters.Noise!.Value * _potentials[ireceiver];
             }
         }
 
-        private double InverseProblem()
+        private double InverseProblem(ref StreamWriter writer)
         {
-            var sw = new StreamWriter($"{PathForTests}/{TestFile}.csv");
             const double eps = 1E-7;
-
-            if (_parameters.ParameterName == "H")
-            {
-                MeshTransformer.ChangeLayers(_mesh, _height1);
-                _fem.Compute();
-            }
-            // else
-            // {
-            //     _fem.Current = _current;
-            // }
-
-            for (int i = 0; i < _currentPotentials.Length; i++)
-            {
-                _currentPotentials[i] = Potential(i, _current);
-            }
-
+            
+            var tmpCurrPotentials = new Vector<double>(_currentPotentials.Length);
+            
             double functional = CalculateFunctional(_currentPotentials);
             _prevFunctional = functional;
 
@@ -178,81 +123,60 @@ public class ElectroExplorationBuilder
 
             while (functional >= eps && iter < 500)
             {
-                if (iter == 0)
-                {
-                    if (_parameters.ParameterName == "H")
-                    {
-                        sw.WriteLine("Iter,Functional,Height1");
-                        Console.WriteLine($"{"Iter",5} {"Functional", 10} {"Height", 10}");
-                    }
-                    else
-                    {
-                        sw.WriteLine("Iter,Functional,I");
-                        Console.WriteLine($"{"Iter",5} {"Functional", 10} {"I", 10}");
-                    }
-                }
-                
-                if (_parameters.ParameterName == "H")
-                {
-                    sw.WriteLine($"{iter},{functional},{_height1}");
-                    Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
-                }
-                else
-                {
-                    sw.WriteLine($"{iter},{functional},{_current}");
-                    Console.WriteLine($"{iter,5} {functional:E7} {_current:G10}");
-                }
-
                 AssemblySystem();
-
+                Regularization();
+                
                 _solver.SetMatrix(_matrix);
                 _solver.SetVector(_vector);
                 _solver.Compute();
 
-                // Regularization();
-
-                if (_parameters.ParameterName == "H")
+                _beta = 1.0;
+                double prevBeta = 0.0;
+                do
                 {
-                    _height1 += _solver.Solution!.Value[0];
-                    MeshTransformer.ChangeLayers(_mesh, _height1);
-                    _fem.Compute();
-                }
-                else
-                {
-                    _current += _solver.Solution!.Value[0];
-                    // _fem.Current = _current;
-                }
+                    tmpCurrPotentials.Fill(0.0);
+                    for (int i = 0; i < _parametersCount; i++)
+                    {
+                        _currents[i] -= prevBeta * _solver.Solution!.Value[i];
+                        _currents[i] += _beta * _solver.Solution!.Value[i];
 
-                for (int i = 0; i < _currentPotentials.Length; i++)
-                {
-                    _currentPotentials[i] = Potential(i, _current);
-                }
+                        for (int j = 0; j < _parameters.PowerReceivers!.Length; j++)
+                        {
+                            tmpCurrPotentials[j] +=  _potentialsDiffs[i][j] * _currents[i];
+                        }
+                    }
 
-                _currentFunctional = CalculateFunctional(_currentPotentials);
+                    prevBeta = _beta;
+                    _beta /= 2.0;
+
+                    _currentFunctional = CalculateFunctional(tmpCurrPotentials);
+                    
+                } while (_currentFunctional > _prevFunctional);
+
+                Vector<double>.Copy(tmpCurrPotentials, _currentPotentials);
                 
-                double frac = Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional);
-                if (frac >= MaxDifferencePercent)
+                var frac = Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional);
+                if (frac > MaxDifferencePercent)
                 {
                     functional = _currentFunctional;
                     _prevFunctional = functional;
                     iter++;
                 }
-                else break;
-            }
-            
-            if (_parameters.ParameterName == "H")
-            {
-                sw.WriteLine($"{iter},{functional},{_height1}");
-                sw.Close();
-                Console.WriteLine($"{iter,5} {functional:E7} {_height1:G10}");
-            }
-            else
-            {
-                sw.WriteLine($"{iter},{functional},{_current}");
-                sw.Close();
-                Console.WriteLine($"{iter,5} {functional:E7} {_current:G10}");
+                else
+                {
+                    functional = _currentFunctional;
+                    break;
+                }
             }
 
+            writer.Write($"{AlphaRegulator},");
+            foreach (var c in _currents)
+            {
+                writer.Write($"{c:f7},");
+            }
+            writer.Write($"{functional:e7},");
+            writer.WriteLine();
+            
             return functional;
         }
 
@@ -269,34 +193,20 @@ public class ElectroExplorationBuilder
             return functional;
         }
 
-        // private void Regularization()
-        // {
-        //     double prevAlpha = 0.0;
-        //
-        //     while (!_solver.IsSolved())
-        //     {
-        //         for (int i = 0; i < _matrix.Size; i++)
-        //         {
-        //             _matrix[i, i] -= prevAlpha;
-        //             _matrix[i, i] += _alphaRegulator;
-        //
-        //             _vector[i] += prevAlpha * (_potentials[i] - _currentPotentials[i]);
-        //             _vector[i] -= _alphaRegulator * (_potentials[i] - _currentPotentials[i]);
-        //
-        //             prevAlpha = _alphaRegulator;
-        //             _alphaRegulator *= 10.0;
-        //         }
-        //
-        //         _solver.SetMatrix(_matrix);
-        //         _solver.SetVector(_vector);
-        //         _solver.Compute();
-        //     }
-        // }
-
-        public void Solve()
+        private void Regularization()
         {
-            DirectProblem();
-            Functional = InverseProblem();
+            for (int i = 0; i < _matrix.Size; i++)
+            {
+                _matrix[i, i] += AlphaRegulator;
+                // _vector[i] -= AlphaRegulator *
+                //               (_currents[i] - (i == EnabledSourceIndex ? RealCurrent : 0.0));
+            }
+        }
+
+        public void Solve(ref StreamWriter writer)
+        {
+            DataGeneration();
+            InverseProblem(ref writer);
         }
     }
 

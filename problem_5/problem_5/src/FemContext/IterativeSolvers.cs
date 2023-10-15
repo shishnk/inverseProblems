@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace problem_4.FemContext;
+namespace problem_5.FemContext;
 
 public static class IterativeSolverExtensions
 {

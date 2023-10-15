@@ -1,7 +1,7 @@
-﻿using problem_4.Geometry;
-using Rectangle = problem_4.Geometry.Rectangle;
+﻿using problem_5.Geometry;
+using Rectangle = problem_5.Geometry.Rectangle;
 
-namespace problem_4.FemContext;
+namespace problem_5.FemContext;
 
 public class Integrator(IEnumerable<QuadratureNode<double>> quadratures)
 {

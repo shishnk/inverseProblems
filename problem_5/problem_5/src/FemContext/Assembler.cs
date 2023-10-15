@@ -1,11 +1,11 @@
-﻿using problem_4.Geometry;
+﻿using problem_5.Geometry;
 
-namespace problem_4.FemContext;
+namespace problem_5.FemContext;
 
 public class MatrixAssembler
 {
     private readonly IBasis _basis;
-    private readonly Mesh.Mesh _mesh;
+    private readonly problem_5.Mesh.Mesh _mesh;
     private readonly Integrator _integrator;
     private readonly Matrix _baseStiffnessMatrix;
     private readonly Matrix _baseMassMatrix;
@@ -16,7 +16,7 @@ public class MatrixAssembler
     public int BasisSize => _basis.Size;
     public IBasis Basis => _basis;
 
-    public MatrixAssembler(IBasis basis, Integrator integrator, Mesh.Mesh mesh)
+    public MatrixAssembler(IBasis basis, Integrator integrator, problem_5.Mesh.Mesh mesh)
     {
         _basis = basis;
         _integrator = integrator;
