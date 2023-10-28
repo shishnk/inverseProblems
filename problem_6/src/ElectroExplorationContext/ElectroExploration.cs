@@ -23,13 +23,17 @@ public class ElectroExplorationBuilder
         private readonly int _parametersCount;
         private readonly double[] _parametersRegularization = { 0.001, 0.001 };
         private const double IncreasePercent = 0.02;
+        private const double MaxDifferenceFunctional = 0.05;
         private double _alphaRegulator = 1E-12;
+        
+        private double _prevFunctional;
+        private double _currentFunctional;
 
         public string FileName { get; set; } = null!;
 
         public ElectroExploration(ElectroParameters parameters, Mesh.Mesh mesh, Fem fem, DirectSolver solver)
         {
-            _current = 1.0;
+            _current = 5.0;
             
             _parameters = parameters;
             _solver = solver;
@@ -94,7 +98,7 @@ public class ElectroExplorationBuilder
                     {
                         double diffQ = _potentialsDiffs[q][i];
                         double diffS = _potentialsDiffs[s][i];
-                        double w = 1.0 / _potentials[i];
+                        double w = Math.Abs(_potentials[i]) <= 1E-14 ? 1.0 : 1.0 / _potentials[i]; 
 
                         _matrix[q, s] += w * w * diffQ * diffS;
                     }
@@ -102,7 +106,7 @@ public class ElectroExplorationBuilder
 
                 for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
                 {
-                    double w = 1.0 / _potentials[i];
+                    double w = Math.Abs(_potentials[i]) <= 1E-14 ? 1.0 : 1.0 / _potentials[i]; 
 
                     _vector[q] -= w * w * _potentialsDiffs[q][i] * (_currentPotentials[i] - _potentials[i]);
                 }
@@ -125,7 +129,7 @@ public class ElectroExplorationBuilder
         private void InverseProblem()
         {
             using var writer = new StreamWriter(FileName);
-            writer.WriteLine("Iter,$\\sigma_1$,$\\sigma_2$,F");
+            writer.WriteLine("Iter,sigma1,sigma2,F");
             
             const double eps = 1E-7;
 
@@ -168,10 +172,22 @@ public class ElectroExplorationBuilder
                     _currentPotentials[i] = Potential(i);
                 }
 
-                functional = CalculateFunctional(_currentPotentials.ToArray());
+                _currentFunctional = CalculateFunctional(_currentPotentials.ToArray());
                 
-                writer.WriteLine($"{iters + 1},{_sigmas[0]},{_sigmas[1]},{functional}");
+                double frac = Math.Abs(_currentFunctional - _prevFunctional) / Math.Max(_currentFunctional, _prevFunctional);
+                if (frac >= MaxDifferenceFunctional)
+                {
+                    functional = _currentFunctional;
+                    _prevFunctional = functional;
+                    writer.WriteLine($"{iters},{_sigmas[0]},{_sigmas[1]},{functional}");
+                }
+                else
+                {
+                    writer.WriteLine($"{iters},{_sigmas[0]},{_sigmas[1]},{functional}");
+                    break;
+                }
             }
+            writer.Close();
         }
 
         private double CalculateFunctional(double[] currentPotentials)
@@ -180,7 +196,8 @@ public class ElectroExplorationBuilder
 
             for (int i = 0; i < _parameters.PowerReceivers!.Length; i++)
             {
-                double error = 1.0 / _potentials[i] * (_potentials[i] - currentPotentials[i]);
+                double w = Math.Abs(_potentials[i]) <= 1E-14 ? 1.0 : 1.0 / _potentials[i]; 
+                double error = w * (_potentials[i] - currentPotentials[i]);
                 functional += error * error;
             }
 

@@ -11,7 +11,7 @@
     },
     {
       "Height": 1000.0,
-      "Sigma": 0.01
+      "Sigma": 0.05
     }
   ],
   "Top border": 2,

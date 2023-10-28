@@ -25,5 +25,5 @@ var electroExploration = ElectroExplorationBuilder.GetInstance()
     .SetFEM(femSolver)
     .SetSolver(new Gauss())
     .CreateElectroSolver();
-electroExploration.FileName = "1.csv";
+electroExploration.FileName = "6.csv";
 electroExploration.Solve();
