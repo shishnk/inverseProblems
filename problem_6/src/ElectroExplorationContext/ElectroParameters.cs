@@ -19,7 +19,7 @@ public class ElectroParameters
     public int[]? ReceiversToNoise { get; init; }
     
     [JsonProperty("Primary sigmas", Required = Required.Always)]
-    public double[]? PrimaryCurrents { get; init; }
+    public double[]? PrimarySigmas { get; init; }
 
     [JsonProperty("Noise", Required = Required.Always)]
     public double? Noise { get; init; }

@@ -6,15 +6,15 @@ public static class MeshTransformer
     {
         foreach (var element in mesh.Elements)
         {
-            // If the element is above the layer boundary
-            if (mesh.Points[element.Nodes[^1]].Z <= firstLayerDepth)
+            if (mesh.Points[element.Nodes[^1]].Z - firstLayerDepth <= 1E-03)
             {
                 element.Material = mesh.AreaProperty[0];
+                element.Area = 0;
             }
-            // If the element is below the layer boundary
-            else if (mesh.Points[element.Nodes[0]].Z >= firstLayerDepth)
+            else if (mesh.Points[element.Nodes[0]].Z - firstLayerDepth >= 1E-03)
             {
                 element.Material = mesh.AreaProperty[^1];
+                element.Area = 1;
             }
             else
             {
@@ -27,6 +27,7 @@ public static class MeshTransformer
 
                 element.Material = alpha * mesh.AreaProperty[0] +
                                    (1.0 - alpha) * mesh.AreaProperty[^1];
+                element.Area = 1;
             }
         }
     }

@@ -84,7 +84,7 @@ public class MatrixAssembler
         {
             for (int j = 0; j <= i; j++)
             {
-                MassMatrix[i, j] = MassMatrix[j, i] = _baseMassMatrix![i, j];
+                MassMatrix[i, j] = MassMatrix[j, i] = _baseMassMatrix[i, j];
             }
         }
     }

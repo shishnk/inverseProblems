@@ -2,7 +2,7 @@
 
 public class MeshGenerator(IMeshBuilder builder)
 {
-    public Mesh CreateMesh() => new(
+    public problem_6.Mesh.Mesh CreateMesh() => new(
         builder.CreatePoints(),
         builder.CreateElements(),
         builder.CreateMaterials(),

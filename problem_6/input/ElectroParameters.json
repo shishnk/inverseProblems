@@ -49,7 +49,7 @@
       }
     }
   ],
-  "Primary sigmas": [0, 0, 0],
-  "Receivers to noise" : [0, 2],
+  "Primary sigmas": [0.001, 0.001],
+  "Receivers to noise" : [],
   "Noise": 0.01
 }

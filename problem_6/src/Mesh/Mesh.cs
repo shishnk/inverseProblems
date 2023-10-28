@@ -17,7 +17,14 @@ public class Mesh(IEnumerable<Point2D> points,
     [JsonIgnore] public IEnumerable<DirichletBoundary> Dirichlet { get; } = dirichlet;
 
     public void UpdateProperties(double[] newProperties)
-        => _areaProperty = newProperties;
+    {
+        foreach (var element in Elements)
+        {
+            element.Material = element.Area == 0
+                ? newProperties[0] 
+                : newProperties[1];
+        }
+    }
 
     public void Save(string path)
     {

@@ -41,6 +41,7 @@ public class Fem
     private IterativeSolver _solver = default!;
     private Vector<double> _localVector = default!;
     private Vector<double> _globalVector = default!;
+    private bool _isInitialized = false;
 
     public double Current { get; set; } = 1.0;
 
@@ -48,7 +49,14 @@ public class Fem
 
     public void Compute()
     {
-        Initialize();
+        if (!_isInitialized)
+        {
+            Initialize();
+            _isInitialized = true;
+        }
+        _assembler.GlobalMatrix!.Clear();
+        _globalVector.Fill(0.0);
+        
         AssemblySystem();
         AccountingDirichletBoundary();
         // _assembler.GlobalMatrix!.PrintDense("matrixDirichlet");
@@ -199,6 +207,8 @@ public class Fem
         return -1;
     }
 
+    public void UpdateMesh(double[] newSigma) => _mesh.UpdateProperties(newSigma);
+    
     public double ValueAtPoint(Point2D point)
     {
         double value = 0.0;

@@ -76,7 +76,7 @@ public class MeshBuilder(MeshParameters parameters) : IMeshBuilder
                 nodes[2] = j + (parameters.AbscissaSplits + 1) * i + parameters.AbscissaSplits + 1;
                 nodes[3] = j + (parameters.AbscissaSplits + 1) * i + parameters.AbscissaSplits + 2;
 
-                _elements[ielem++] = new FiniteElement(nodes.ToArray(), 0);
+                _elements[ielem++] = new(nodes.ToArray(), 0);
             }
         }
 
