@@ -103,7 +103,7 @@
       }
     }
   ],
-  "Primary currents": [0, 0, 0, 0, 0, 0, 0, 0, 0, 10],
+  "Primary currents": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   "Receivers to noise" : [0, 2],
-  "Noise": 0.10
+  "Noise": 0.1
 }

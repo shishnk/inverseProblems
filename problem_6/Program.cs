@@ -1,6 +1,6 @@
-﻿using problem_5.ElectroExplorationContext;
-using problem_5.FemContext;
-using problem_5.Mesh;
+﻿using problem_6.ElectroExplorationContext;
+using problem_6.FemContext;
+using problem_6.Mesh;
 
 var parameters = MeshParameters.ReadJson("input/MeshParameters.json");
 MeshGenerator meshGenerator = new(new MeshBuilder(parameters));
